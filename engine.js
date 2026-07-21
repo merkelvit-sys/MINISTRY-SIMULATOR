@@ -14,8 +14,20 @@ const TRUST_FACTOR = 7;
 const TIMEOUT_PENALTY = -2;
 const DEFAULT_THINK_TIME = 40;
 
+const BADGES = {
+  peaceMaker: { id: "peaceMaker", icon: "🕊️", name: "Кроткий ответ", desc: "Сгладил 3+ конфликтных ситуации в служении" },
+  scriptureExplorer: { id: "scriptureExplorer", icon: "📖", name: "Исследователь Писания", desc: "Успешно применил библейский стих 10+ раз" },
+  tactMaster: { id: "tactMaster", icon: "🤝", name: "Такт и уважение", desc: "Завершил сессию без единого напористого ответа" },
+  perfectionist: { id: "perfectionist", icon: "🏆", name: "Мастер служения", desc: "Достиг 90%+ эффективности в сессии" },
+  hardcoreMaster: { id: "hardcoreMaster", icon: "⚡", name: "Герой испытания", desc: "Успешно прошёл сессию в режиме «Испытание»" }
+};
+
 function scoreAnswer(answer, personality) {
-  return answer.tones.reduce((sum, t) => sum + (personality.pref[t] || 0), 0);
+  let sum = answer.tones.reduce((sum, t) => sum + (personality.pref[t] || 0), 0);
+  if (personality.tonePenalties) {
+    sum += answer.tones.reduce((s, t) => s + (personality.tonePenalties[t] || 0), 0);
+  }
+  return sum;
 }
 
 function buildSteps(theme) {
@@ -36,9 +48,26 @@ class PlayerProfile {
   load() {
     try {
       const data = localStorage.getItem("service_sim_profile");
-      if (data) return JSON.parse(data);
+      if (data) {
+        const parsed = JSON.parse(data);
+        if (!parsed.completedThemes) parsed.completedThemes = {};
+        if (!parsed.badges) parsed.badges = [];
+        if (!parsed.scriptureUses) parsed.scriptureUses = 0;
+        if (!parsed.conflictsResolved) parsed.conflictsResolved = 0;
+        return parsed;
+      }
     } catch(e) {}
-    return { sessions: 0, earned: 0, achievable: 0, encounters: { sincere: 0, hurrying: 0, skeptic: 0 }, toneUsage: {} };
+    return {
+      sessions: 0,
+      earned: 0,
+      achievable: 0,
+      encounters: { sincere: 0, hurrying: 0, skeptic: 0, relative: 0, colleague: 0, rel_leader: 0 },
+      toneUsage: {},
+      completedThemes: {},
+      badges: [],
+      scriptureUses: 0,
+      conflictsResolved: 0
+    };
   }
   save() {
     try { localStorage.setItem("service_sim_profile", JSON.stringify(this.data)); } catch(e) {}
@@ -47,18 +76,73 @@ class PlayerProfile {
     this.data.sessions++;
     this.data.earned += session.earned;
     this.data.achievable += session.achievable;
+    
+    // Record theme completions
+    const finalTrust = session.trust;
+    session.cards.forEach(c => {
+      this.data.completedThemes[c.theme.id] = Math.max(this.data.completedThemes[c.theme.id] || 0, Math.floor(finalTrust));
+    });
+
+    // Record encounters & tone usages
+    let usedPushy = false;
     session.log.forEach(l => {
-      if (l.personality) {
-        this.data.encounters[l.personality] = (this.data.encounters[l.personality] || 0) + 1;
+      if (l.personalityId) {
+        this.data.encounters[l.personalityId] = (this.data.encounters[l.personalityId] || 0) + 1;
       }
-      if (l.tones) {
-        l.tones.forEach(t => {
+      if (l.chosenTones) {
+        l.chosenTones.forEach(t => {
           this.data.toneUsage[t] = (this.data.toneUsage[t] || 0) + 1;
+          if (t === "pushy") usedPushy = true;
         });
       }
     });
+
+    if (session.scriptureOpens > 0) {
+      this.data.scriptureUses = (this.data.scriptureUses || 0) + session.scriptureOpens;
+    }
+    if (session.conflictsResolved > 0) {
+      this.data.conflictsResolved = (this.data.conflictsResolved || 0) + session.conflictsResolved;
+    }
+
+    // Check Badges
+    const pct = session.achievable > 0 ? Math.round((session.earned / session.achievable) * 100) : 0;
+    const newBadges = [];
+
+    if (!this.data.badges.includes("peaceMaker") && this.data.conflictsResolved >= 3) {
+      this.data.badges.push("peaceMaker");
+      newBadges.push(BADGES.peaceMaker);
+    }
+    if (!this.data.badges.includes("scriptureExplorer") && this.data.scriptureUses >= 10) {
+      this.data.badges.push("scriptureExplorer");
+      newBadges.push(BADGES.scriptureExplorer);
+    }
+    if (!this.data.badges.includes("tactMaster") && !usedPushy && session.cards.length >= 5) {
+      this.data.badges.push("tactMaster");
+      newBadges.push(BADGES.tactMaster);
+    }
+    if (!this.data.badges.includes("perfectionist") && pct >= 90) {
+      this.data.badges.push("perfectionist");
+      newBadges.push(BADGES.perfectionist);
+    }
+    if (!this.data.badges.includes("hardcoreMaster") && session.mode === "hardcore" && pct >= 70) {
+      this.data.badges.push("hardcoreMaster");
+      newBadges.push(BADGES.hardcoreMaster);
+    }
+
     this.save();
+    return newBadges;
   }
+
+  getLevelMastery(level) {
+    let completed = 0;
+    level.themes.forEach(t => {
+      if ((this.data.completedThemes[t.id] || 0) >= 60) {
+        completed++;
+      }
+    });
+    return { completed, total: level.themes.length, percent: Math.round((completed / level.themes.length) * 100) };
+  }
+
   getFeedback() {
     if (this.data.sessions < 3) return "Пройдите ещё пару сессий, чтобы профиль собрал аналитику вашего стиля.";
     let mostUsedTone = "", maxTone = 0;
@@ -67,7 +151,7 @@ class PlayerProfile {
     }
     const pct = this.data.achievable > 0 ? Math.round((this.data.earned / this.data.achievable) * 100) : 0;
     
-    if (mostUsedTone === "pushy" || mostUsedTone === "false") return "💡 Совет: Вы часто используете напористые или резкие ответы. Старайтесь больше проявлять такт (respect) и опираться на Писание (deep).";
+    if (mostUsedTone === "pushy" || mostUsedTone === "false") return "💡 Совет: Вы часто используете напористые ответы. Старайтесь больше проявлять такт (respect) и опираться на Писание (deep).";
     if (pct < 60 && mostUsedTone === "deep") return "💡 Совет: Вы часто используете Писание, но иногда людям нужен просто короткий ответ или сочувствие. Следите за нетерпеливыми собеседниками.";
     if (pct >= 80) return "🏆 Отлично! У вас сформировался чуткий и адаптивный подход к разным людям.";
     return "💡 Аналитика: Вы развиваетесь. Экспериментируйте с разными тонами, чтобы найти лучший ключ к каждому характеру.";
@@ -83,18 +167,35 @@ class GameEngine {
     this.profile = new PlayerProfile();
   }
 
-  startSession(level) {
+  startSession(level, mode = "normal", filterUnmastered = false) {
     this.perfectStreak = 0;
     const count = SESSION_MIN + rand(SESSION_MAX - SESSION_MIN + 1);
-    const pKeys = Object.keys(PERSONALITIES);
-    const themes = shuffle(level.themes).slice(0, Math.min(count, level.themes.length));
+    const pool = level.personalityPool || Object.keys(PERSONALITIES);
+    
+    let candidateThemes = level.themes;
+    if (filterUnmastered) {
+      const unmastered = level.themes.filter(t => (this.profile.data.completedThemes[t.id] || 0) < 60);
+      if (unmastered.length > 0) candidateThemes = unmastered;
+    }
+
+    const themes = shuffle(candidateThemes).slice(0, Math.min(count, candidateThemes.length));
+    
     this.session = {
       level,
-      cards: themes.map((theme) => ({
-        theme,
-        personality: PERSONALITIES[pKeys[rand(pKeys.length)]],
-        steps: buildSteps(theme),
-      })),
+      mode,
+      cards: themes.map((theme) => {
+        const pOriginal = PERSONALITIES[pool[rand(pool.length)]];
+        const p = { ...pOriginal };
+        if (mode === "hardcore") {
+          p.startTrust = Math.max(25, p.startTrust - 15);
+          p.thinkTime = Math.max(20, p.thinkTime - 10);
+        }
+        return {
+          theme,
+          personality: p,
+          steps: buildSteps(theme),
+        };
+      }),
       index: 0,
       stepIndex: 0,
       trust: 0,
@@ -107,6 +208,7 @@ class GameEngine {
       maxStreak: 0,
       leftCount: 0,
       scriptureOpens: 0,
+      conflictsResolved: 0,
       log: [],
       recentTones: [],
       inConflict: false,
@@ -140,7 +242,10 @@ class GameEngine {
       const bestIndex = scores.indexOf(best);
       const timedOut = chosenIndex === -1;
       let raw = timedOut ? TIMEOUT_PENALTY : scores[chosenIndex];
-      
+
+      if (raw > 0) soundFX.playSuccess();
+      else soundFX.playFail();
+
       let fatigueMsg = "";
       let chosenTones = [];
       if (!timedOut) {
@@ -176,7 +281,7 @@ class GameEngine {
       const trustBefore = this.session.trust;
       this.session.trust = Math.max(0, Math.min(100, this.session.trust + raw * TRUST_FACTOR));
       
-      // Ветвление: Спор
+      // Conflict branching
       if (!timedOut && raw < 0 && !this.session.inConflict) {
         this.session.inConflict = true;
         const cDef = CONFLICT_STEPS[p.id];
@@ -184,16 +289,40 @@ class GameEngine {
           prompt: cDef.prompt, scripture: "", answers: shuffle(cDef.answers), isConflict: true
         });
       } else if (!timedOut && this.session.inConflict && step.isConflict) {
-        if (raw >= 0) this.session.inConflict = false; // Успокоили
+        if (raw >= 0) {
+          this.session.inConflict = false;
+          this.session.conflictsResolved++;
+        }
       }
 
       const left = this.session.trust <= 0;
       if (left) { this.session.cardLeft = true; this.session.leftCount++; }
 
       const lastStep = this.session.stepIndex >= card.steps.length - 1;
+      
+      // Record detailed log item for Debriefing
+      const chosenAnsObj = timedOut ? null : step.answers[chosenIndex];
+      const bestAnsObj = step.answers[bestIndex];
+      
       this.session.log.push({
-        themeId: card.theme.id, personality: p.id, stepIndex: this.session.stepIndex,
-        chosenIndex, raw, best, points, mult, left, timedOut, tones: chosenTones
+        themeId: card.theme.id,
+        question: card.theme.question,
+        stepPrompt: step.prompt,
+        stepIndex: this.session.stepIndex,
+        personalityId: p.id,
+        personalityName: p.name,
+        chosenIndex,
+        chosenText: timedOut ? "Время истекло" : chosenAnsObj.text,
+        chosenTones,
+        bestText: bestAnsObj.text,
+        bestTones: bestAnsObj.tones,
+        raw,
+        points,
+        trustBefore,
+        trustAfter: this.session.trust,
+        left,
+        timedOut,
+        tip: this.constructor.getPedagogicalTip(p, chosenTones, raw)
       });
 
       renderStepFeedback({
@@ -211,18 +340,28 @@ class GameEngine {
     try {
       const card = this.session.cards[this.session.index];
       const lastStep = this.session.stepIndex >= card.steps.length - 1;
-      this.session.scriptureBonusUsed = false; // reset for next step
+      this.session.scriptureBonusUsed = false;
       
       if (this.session.cardLeft || lastStep) {
         this.session.index++;
         if (this.session.index >= this.session.cards.length) {
-          this.profile.recordSession(this.session);
+          this.session.newBadges = this.profile.recordSession(this.session);
           renderResult();
         } else {
           this.startCard();
         }
       } else {
         this.session.stepIndex++;
+        // Dynamic Step 2 Prompt Adaptation based on trust
+        const nextStep = card.steps[this.session.stepIndex];
+        if (!nextStep.isConflict && !nextStep._adapted) {
+          nextStep._adapted = true;
+          if (this.session.trust >= 75) {
+            nextStep.prompt = "Собеседник тронут вашим чутким подходом и готов слушать дальше: " + nextStep.prompt;
+          } else if (this.session.trust <= 45) {
+            nextStep.prompt = "Собеседник ещё сдерживает настороженность: " + nextStep.prompt;
+          }
+        }
         renderStep();
       }
     } finally {
@@ -245,6 +384,7 @@ class GameEngine {
   applyScripture(ref) {
     if (this.session.scriptureBonusUsed) return { success: false, msg: "Вы уже приводили стих в этом шаге." };
     this.session.scriptureBonusUsed = true;
+    this.session.scriptureOpens++;
     
     const card = this.session.cards[this.session.index];
     const step = card.steps[this.session.stepIndex];
@@ -258,7 +398,7 @@ class GameEngine {
       const left = this.session.trust <= 0;
       renderTrustUpdate(this.session.trust, "Собеседник не понял, к чему этот стих. (-10% доверия)", "bad");
       if (left) {
-        this.resolveAnswer(-1); // forced leave
+        this.resolveAnswer(-1);
       }
       return { success: false };
     }
@@ -302,6 +442,44 @@ class GameEngine {
     if (t >= 20) return { face: "😕", label: "Насторожен", color: "var(--warn)" };
     if (t > 0)   return { face: "😠", label: "На грани", color: "var(--bad)" };
     return { face: "🚶", label: "Ушёл", color: "var(--bad)" };
+  }
+
+  static getNpcCue(p, trust) {
+    if (trust >= 80) return "💭 Искренне расположен к разговору и с интересом слушает.";
+    if (trust >= 60) {
+      if (p.id === "sincere") return "💭 Ценит глубокие мысли из Библии и неторопливые рассуждения.";
+      if (p.id === "hurrying") return "💭 Очень мало времени — ждёт краткую и точную мысль.";
+      if (p.id === "skeptic") return "💭 Чувствителен к тону, положительно реагирует на сочувствие.";
+      if (p.id === "rel_leader") return "💭 Глубоко знает традиции, ценит усердное исследование Писания.";
+      if (p.id === "relative") return "💭 Переживает за отношения, ценит любовь и семейные узы.";
+      if (p.id === "colleague") return "💭 Опасается неловкости на работе/учёбе, ценит простоту.";
+      return "💭 Настроен на спокойное обсуждение.";
+    }
+    if (trust >= 40) return "💭 Сомневается, внимательно оценивает ваш тон и искренность.";
+    if (trust > 0) return "💭 Насторожен и склонен завершить диалог при давлении.";
+    return "💭 Разговор завершён.";
+  }
+
+  static getPedagogicalTip(personality, chosenTones, raw) {
+    if (raw > 0) {
+      return "💡 Отличный выбор! Вы выбрали тон, который полностью согласуется с характером собеседника.";
+    }
+    if (chosenTones.includes("pushy")) {
+      return "💡 Напористый тон отталкивает людей и снижает доверие. В служении важно сохранять кротость и уважение.";
+    }
+    if (chosenTones.includes("dismissive")) {
+      return "💡 Сухой ответ создаёт впечатление равнодушия. Сочувствие и такт помогают открывать сердца.";
+    }
+    if (chosenTones.includes("false")) {
+      return "💡 Искажение фактов или неточные утверждения разрушают доверие собеседника.";
+    }
+    if (personality.id === "hurrying" && chosenTones.includes("deep")) {
+      return "💡 Спешащему человеку сложно выслушать длинную мысль. Сначала дайте краткий ответ.";
+    }
+    if (personality.id === "skeptic" && !chosenTones.includes("tact")) {
+      return "💡 Эмоциональному собеседнику в первую очередь важно почувствовать сочувствие и уважение.";
+    }
+    return "💡 Старайтесь проявлять такт (respect) и мягко направлять мысль к Библии (deep).";
   }
 
   static achievementsFor(s, pct) {

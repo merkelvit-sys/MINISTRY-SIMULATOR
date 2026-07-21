@@ -1,9 +1,17 @@
 "use strict";
 
+document.addEventListener("click", (e) => {
+  if (e.target.closest("button") || e.target.closest(".level")) {
+    soundFX.playClick();
+  }
+});
+
 const HEADER = `<h1>ТРЕНАЖЁР <span>СЛУЖЕНИЯ</span></h1>`;
+let selectedMode = "normal";
 
 function npcHeaderHTML(p, trust) {
   const mood = GameEngine.moodFromTrust(trust);
+  const cue = GameEngine.getNpcCue(p, trust);
   return `
     <div class="npc">
       <div class="avatar">${p.avatar}</div>
@@ -14,6 +22,7 @@ function npcHeaderHTML(p, trust) {
         </div>
         <div class="npc-trait">${p.trait}</div>
         <div class="trust-wrap"><div class="trust-bar" id="trustBar" style="width:${trust}%; background:${mood.color}"></div></div>
+        <div class="npc-cue">${cue}</div>
       </div>
     </div>`;
 }
@@ -21,47 +30,104 @@ function npcHeaderHTML(p, trust) {
 function renderMenu() {
   engine.stopTimer();
   const rows = [];
+  
   for (let i = 1; i <= 6; i++) {
     const lv = LEVELS.find((l) => l.id === i);
     if (lv) {
+      const mastery = engine.profile.getLevelMastery(lv);
+      const unmasteredBtn = mastery.completed < mastery.total
+        ? `<button class="btn-unmastered" data-unmastered="${lv.id}">Проработать неизученные (10 тем) 🎯</button>`
+        : `<span class="tag" style="color:var(--good); border-color:var(--good);">Все 10 тем освоены! ✓</span>`;
+
       rows.push(`
-        <div class="level" data-level="${lv.id}">
-          <div>
-            <div class="lv-name">Уровень ${lv.id}: ${lv.name}</div>
-            <div class="npc-trait">${lv.desc} · ${lv.themes.length} тем</div>
+        <div class="level-card" style="background:var(--card2); border:1px solid var(--line); border-radius:16px; padding:16px 20px; margin-bottom:12px;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div style="flex:1;">
+              <div class="lv-name">Уровень ${lv.id}: ${lv.name}</div>
+              <div class="npc-trait">${lv.desc} · ${lv.themes.length} тем</div>
+              <div class="mastery-wrap">
+                <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--muted);">
+                  <span>Освоено тем: <b>${mastery.completed} / ${mastery.total}</b></span>
+                  <span>${mastery.percent}%</span>
+                </div>
+                <div class="mastery-bar-bg"><div class="mastery-bar-fill" style="width:${mastery.percent}%"></div></div>
+              </div>
+              <div style="margin-top:6px;">${unmasteredBtn}</div>
+            </div>
+            <button class="btn" style="margin:0 0 0 16px; padding:10px 18px;" data-level="${lv.id}">Начать →</button>
           </div>
-          <div style="color:var(--accent); font-weight:700;">Начать →</div>
         </div>`);
     } else {
       rows.push(`
         <div class="level locked">
           <div>
             <div class="lv-name">Уровень ${i}</div>
-            <div class="npc-trait">Скоро — добавим по шаблону</div>
+            <div class="npc-trait">Скоро</div>
           </div>
           <div>🔒</div>
         </div>`);
     }
   }
   
-  // Profile stats
+  // Profile stats & Badges
   const p = engine.profile.data;
+  const userBadges = p.badges || [];
+  
+  const badgesHtml = Object.values(BADGES).map(b => {
+    const isUnlocked = userBadges.includes(b.id);
+    return `
+      <div class="badge-card ${isUnlocked ? 'unlocked' : 'locked'}">
+        <div class="badge-icon">${b.icon}</div>
+        <div>
+          <div class="badge-title">${b.name} ${isUnlocked ? '✓' : ''}</div>
+          <div class="badge-desc">${b.desc}</div>
+        </div>
+      </div>`;
+  }).join("");
+
   const profileHtml = p.sessions > 0 ? `
     <div class="fb" style="margin-bottom:16px;">
       <h3>Профиль игрока</h3>
       <div class="npc-trait">Сессий пройдено: <b>${p.sessions}</b> | Общий рейтинг: <b>${p.achievable > 0 ? Math.round((p.earned/p.achievable)*100) : 0}%</b></div>
+      <div style="margin-top:12px;">
+        <div style="font-weight:700; font-size:13px; color:var(--fg); margin-bottom:8px;">Достижения в служении:</div>
+        <div class="badge-grid">${badgesHtml}</div>
+      </div>
     </div>
-  ` : "";
+  ` : `
+    <div class="fb" style="margin-bottom:16px;">
+      <h3>Достижения в служении</h3>
+      <div class="badge-grid">${badgesHtml}</div>
+    </div>
+  `;
 
   app.innerHTML = `
     ${HEADER}
     <p class="sub">Подбирай ответ под характер собеседника. Доверие важнее скорости.</p>
+    
+    <div class="mode-selector">
+      <button class="mode-btn ${selectedMode === 'normal' ? 'active' : ''}" id="modeNormal">Обычный режим</button>
+      <button class="mode-btn ${selectedMode === 'hardcore' ? 'active hardcore' : ''}" id="modeHardcore">⚡ Испытание на прочность</button>
+    </div>
+
     ${profileHtml}
     <div class="card"><div class="levels">${rows.join("")}</div></div>
     <p class="sub">Механика: у каждого свой характер и стартовое доверие. Грубость роняет доверие — при 0% собеседник уходит.</p>
   `;
-  app.querySelectorAll(".level[data-level]").forEach((el) => {
-    el.addEventListener("click", () => engine.startSession(LEVELS.find((l) => l.id === +el.dataset.level)));
+
+  // Handlers
+  $("#modeNormal").addEventListener("click", () => { selectedMode = "normal"; renderMenu(); });
+  $("#modeHardcore").addEventListener("click", () => { selectedMode = "hardcore"; renderMenu(); });
+
+  app.querySelectorAll("button[data-level]").forEach((el) => {
+    el.addEventListener("click", () => engine.startSession(LEVELS.find((l) => l.id === +el.dataset.level), selectedMode, false));
+  });
+
+  app.querySelectorAll("button[data-unmastered]").forEach((el) => {
+    el.addEventListener("click", (e) => {
+      e.stopPropagation();
+      engine.startSession(LEVELS.find((l) => l.id === +el.dataset.unmastered), selectedMode, true);
+    });
   });
 }
 
@@ -89,7 +155,7 @@ function renderStep() {
     ${HEADER}
     <div class="card ${step.isConflict ? 'conflict' : ''}">
       <div class="hud">
-        <span>Уровень <b>${engine.session.level.id}</b> · Карточка <b>${engine.session.index + 1}</b>/${engine.session.cards.length}${multi ? ` · Шаг <b>${engine.session.stepIndex + 1}</b>/${card.steps.length}` : ""}</span>
+        <span>Уровень <b>${engine.session.level.id}</b> · Карточка <b>${engine.session.index + 1}</b>/${engine.session.cards.length}${multi ? ` · Шаг <b>${engine.session.stepIndex + 1}</b>/${card.steps.length}` : ""} ${engine.session.mode === 'hardcore' ? '<span class="tag" style="border-color:var(--bad); color:var(--bad);">⚡ Испытание</span>' : ''}</span>
         ${engine.session.streak > 1 ? `<span class="streak-badge">🔥 Серия ×${engine.session.streak}</span>` : ""}
       </div>
       <div class="hud">
@@ -112,6 +178,7 @@ function renderStep() {
       <div class="answers" id="answers"></div>
     </div>
   `;
+  soundFX.playPop();
   const box = $("#answers");
   step.answers.forEach((a, i) => {
     const b = document.createElement("button");
@@ -151,7 +218,7 @@ function renderStep() {
   });
   
   let currentThinkTime = p.thinkTime || DEFAULT_THINK_TIME;
-  if (engine.session.streak >= 3) currentThinkTime = currentThinkTime * 0.7; // 30% faster
+  if (engine.session.streak >= 3) currentThinkTime = currentThinkTime * 0.7;
   engine.startTimer(currentThinkTime, () => engine.resolveAnswer(-1));
 }
 
@@ -204,6 +271,7 @@ function renderStepFeedback(pl) {
       <button class="btn" id="nextBtn">${isEnd ? "Завершить сессию" : nextLabel}</button>
     </div>
   `;
+  soundFX.playPop();
   const link = $(".scripture-link");
   if (link) link.addEventListener("click", () => openBibleModal(link.dataset.ref));
   $("#nextBtn").addEventListener("click", () => engine.advance());
@@ -223,7 +291,43 @@ function renderResult() {
     ? achs.map((a) => `<div class="ach"><span class="ach-ico">${a.icon}</span><div><b>${a.name}</b><div class="npc-trait">${a.desc}</div></div></div>`).join("")
     : `<div class="npc-trait">Пока без ачивок — попробуй ещё раз!</div>`;
 
+  const newBadgesHtml = (engine.session.newBadges && engine.session.newBadges.length > 0)
+    ? `<div class="fb perfect" style="margin:16px 0; text-align:left;">
+        <h3>🎖️ Получены новые достижения!</h3>
+        <div style="display:flex; flex-direction:column; gap:8px; margin-top:8px;">
+          ${engine.session.newBadges.map(b => `<div style="font-weight:700;">${b.icon} ${b.name} — <span style="font-weight:normal; font-size:13px; color:var(--muted);">${b.desc}</span></div>`).join("")}
+        </div>
+       </div>`
+    : "";
+
   const profileFeedback = engine.profile.getFeedback();
+
+  // Debriefing list HTML
+  const debriefListHtml = engine.session.log.map((logItem, idx) => {
+    const isGood = logItem.raw > 0;
+    const chosenTonesStr = logItem.chosenTones.map(t => TONES[t] || t).join(", ");
+    const bestTonesStr = logItem.bestTones.map(t => TONES[t] || t).join(", ");
+    
+    return `
+      <div class="debrief-card">
+        <div class="debrief-header">
+          <span>Шаг ${idx + 1} · ${logItem.personalityName}</span>
+          <span style="color:${isGood ? 'var(--good)' : 'var(--bad)'}; font-weight:700;">
+            ${isGood ? `+${logItem.points} б. (Доверие ${Math.floor(logItem.trustBefore)}% → ${Math.floor(logItem.trustAfter)}%)` : `Доверие ${Math.floor(logItem.trustBefore)}% → ${Math.floor(logItem.trustAfter)}%`}
+          </span>
+        </div>
+        <div class="debrief-question">«${logItem.question || logItem.stepPrompt}»</div>
+        <div class="debrief-choice ${isGood ? 'good' : 'bad'}">
+          <b>Ваш выбор:</b> ${logItem.chosenText} ${chosenTonesStr ? `<span class="tag">${chosenTonesStr}</span>` : ''}
+        </div>
+        ${!isGood ? `
+          <div class="debrief-optimal">
+            <b>Лучший ответ:</b> ${logItem.bestText} <span class="tag">${bestTonesStr}</span>
+          </div>
+        ` : ''}
+        <div class="debrief-tip">${logItem.tip}</div>
+      </div>`;
+  }).join("");
 
   app.innerHTML = `
     ${HEADER}
@@ -232,6 +336,8 @@ function renderResult() {
       <h3>${grade}</h3>
       <p class="sub">${note}</p>
       
+      ${newBadgesHtml}
+
       <div class="fb" style="text-align:left; margin:16px 0;">
         <b>Аналитика профиля:</b><br/>
         <span style="font-size:14px; color:var(--muted)">${profileFeedback}</span>
@@ -245,11 +351,17 @@ function renderResult() {
         <span>🚶 Ушли: <b>${engine.session.leftCount}</b></span>
       </div>
       <div class="ach-list">${achHtml}</div>
-      <button class="btn" id="againBtn">Новый выход ↻</button>
+
+      <div class="debrief-section">
+        <div class="debrief-title">🔍 Подробный разбор диалогов (${engine.session.log.length} шагов)</div>
+        ${debriefListHtml}
+      </div>
+
+      <button class="btn" id="againBtn" style="margin-top:20px;">Новый выход ↻</button>
       <button class="btn secondary" id="menuBtn">В меню</button>
     </div>
   `;
-  $("#againBtn").addEventListener("click", () => engine.startSession(engine.session.level));
+  $("#againBtn").addEventListener("click", () => engine.startSession(engine.session.level, engine.session.mode));
   $("#menuBtn").addEventListener("click", renderMenu);
 }
 

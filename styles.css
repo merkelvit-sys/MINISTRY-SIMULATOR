@@ -76,7 +76,6 @@ h1 span { color:var(--accent); }
 .ach { display:flex; align-items:center; gap:12px; background:var(--card2); border:1px solid var(--line); border-left:4px solid var(--gold); border-radius:12px; padding:12px 14px; }
 .ach-ico { font-size:22px; }
 
-/* New features styles */
 .conflict {
   border-color: var(--bad);
   box-shadow: 0 0 30px rgba(239, 71, 111, 0.15);
@@ -174,4 +173,202 @@ h1 span { color:var(--accent); }
   color: var(--warn);
   font-weight: 600;
   font-size: 13px;
+}
+
+/* === New Features Styles === */
+
+/* NPC Inner Cue (Thought bubble) */
+.npc-cue {
+  background: rgba(76, 201, 240, 0.08);
+  border: 1px dashed var(--accent);
+  border-radius: 10px;
+  padding: 6px 12px;
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--accent);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Mode Selector */
+.mode-selector {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+  background: var(--card2);
+  padding: 6px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+}
+.mode-btn {
+  flex: 1;
+  padding: 10px 14px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-weight: 700;
+  font-size: 13px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.mode-btn.active {
+  background: var(--card);
+  color: var(--fg);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  border: 1px solid var(--accent);
+}
+.mode-btn.active.hardcore {
+  border-color: var(--bad);
+  color: var(--bad);
+}
+
+/* Mastery Progress */
+.mastery-wrap {
+  margin-top: 6px;
+}
+.mastery-bar-bg {
+  height: 5px;
+  background: #0a0d18;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+.mastery-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--good));
+  transition: width 0.4s ease;
+}
+.btn-unmastered {
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: rgba(255, 183, 3, 0.15);
+  color: var(--gold);
+  border: 1px solid var(--gold);
+  cursor: pointer;
+  margin-top: 6px;
+  display: inline-block;
+  font-weight: 700;
+}
+.btn-unmastered:hover {
+  background: var(--gold);
+  color: #000;
+}
+
+/* Badges System */
+.badge-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+.badge-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--card2);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 10px 14px;
+  transition: all 0.2s ease;
+}
+.badge-card.unlocked {
+  border-color: var(--gold);
+  background: rgba(255, 183, 3, 0.08);
+}
+.badge-card.locked {
+  opacity: 0.45;
+  filter: grayscale(0.8);
+}
+.badge-icon {
+  font-size: 26px;
+}
+.badge-title {
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--fg);
+}
+.badge-card.unlocked .badge-title {
+  color: var(--gold);
+}
+.badge-desc {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+/* Interactive Debriefing */
+.debrief-section {
+  margin-top: 24px;
+  text-align: left;
+}
+.debrief-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: var(--fg);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.debrief-card {
+  background: var(--card2);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+.debrief-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--line);
+}
+.debrief-question {
+  font-weight: 700;
+  font-size: 15px;
+  color: #fff;
+  margin-bottom: 8px;
+}
+.debrief-choice {
+  font-size: 14px;
+  margin-bottom: 6px;
+  padding: 8px 12px;
+  border-radius: 8px;
+}
+.debrief-choice.good {
+  background: rgba(6, 214, 160, 0.1);
+  border: 1px solid var(--good);
+}
+.debrief-choice.bad {
+  background: rgba(239, 71, 111, 0.1);
+  border: 1px solid var(--bad);
+}
+.debrief-optimal {
+  font-size: 13px;
+  color: var(--good);
+  margin-top: 6px;
+  padding: 6px 10px;
+  background: rgba(6, 214, 160, 0.05);
+  border-radius: 6px;
+}
+.debrief-tip {
+  margin-top: 10px;
+  padding: 10px 14px;
+  background: rgba(76, 201, 240, 0.1);
+  border-left: 3px solid var(--accent);
+  border-radius: 8px;
+  font-size: 13px;
+  color: #e0f4ff;
+  line-height: 1.4;
 }
