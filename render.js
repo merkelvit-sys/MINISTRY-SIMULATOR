@@ -192,9 +192,9 @@ function renderStep() {
   app.innerHTML = `
     ${getHeaderHTML()}
     <div class="card ${step.isConflict ? 'conflict' : ''}">
-      <div class="hud">
-        <span>Уровень <b>${engine.session.level.id}</b> · Карточка <b>${engine.session.index + 1}</b>/${engine.session.cards.length}${multi ? ` · Шаг <b>${engine.session.stepIndex + 1}</b>/${card.steps.length}` : ""} ${engine.session.mode === 'hardcore' ? '<span class="tag" style="border-color:var(--bad); color:var(--bad);">⚡ Испытание</span>' : ''}</span>
-        ${engine.session.streak > 1 ? `<span class="streak-badge">${t('comboStreak')}${engine.session.streak}</span>` : ""}
+      <div class="hud" style="justify-content:space-between; align-items:center;">
+        <span>${t('level')} <b>${engine.session.level.id}</b> · ${t('card')} <b>${engine.session.index + 1}</b>/${engine.session.cards.length}${multi ? ` · ${t('step')} <b>${engine.session.stepIndex + 1}</b>/${card.steps.length}` : ""} ${engine.session.mode === 'hardcore' ? '<span class="tag" style="border-color:var(--bad); color:var(--bad);">⚡ Испытание</span>' : ''}</span>
+        <button class="btn secondary" id="quitToMenuBtn" style="padding:4px 10px; font-size:12px; margin:0; width:auto; display:inline-block;">← ${t('toMenu')}</button>
       </div>
       <div class="hud">
         <span>${t('hudCorrect')} <b>${engine.session.correct}</b> · ${t('hudWrong')} <b>${engine.session.wrong}</b></span>
@@ -217,6 +217,14 @@ function renderStep() {
     </div>
   `;
   soundFX.playPop();
+
+  const qBtn = $("#quitToMenuBtn");
+  if (qBtn) {
+    qBtn.addEventListener("click", () => {
+      engine.stopTimer();
+      renderMenu();
+    });
+  }
   const box = $("#answers");
   step.answers.forEach((a, i) => {
     const b = document.createElement("button");
@@ -308,7 +316,10 @@ function renderStepFeedback(pl) {
         ${fatigue}
         ${scr}
       </div>
-      <button class="btn" id="nextBtn">${isEnd ? t("finishSession") : nextLabel}</button>
+      <div style="margin-top:16px; display:flex; gap:10px;">
+        <button class="btn" id="nextBtn" style="flex:1;">${isEnd ? t("finishSession") : nextLabel}</button>
+        <button class="btn secondary" id="exitToMenuBtn" style="padding:10px 14px; width:auto;">← ${t("toMenu")}</button>
+      </div>
     </div>
   `;
   if (tier === "poor") {
@@ -319,6 +330,13 @@ function renderStepFeedback(pl) {
   const link = $(".scripture-link");
   if (link) link.addEventListener("click", () => openBibleModal(link.dataset.ref));
   $("#nextBtn").addEventListener("click", () => engine.advance());
+  const exBtn = $("#exitToMenuBtn");
+  if (exBtn) {
+    exBtn.addEventListener("click", () => {
+      engine.stopTimer();
+      renderMenu();
+    });
+  }
 }
 
 function renderResult() {
