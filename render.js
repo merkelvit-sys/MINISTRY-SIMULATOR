@@ -266,7 +266,7 @@ function renderStep() {
       
       <div class="bible-search" style="display:flex; gap:6px; align-items:center; margin-bottom:12px;">
         <input type="text" id="bSearchInput" placeholder="${t('bibleSearchPlaceholder')}" autocomplete="off" style="flex:1;" />
-        <button id="bSearchBtn" class="btn secondary" style="padding:8px 12px; margin:0; width:auto; flex-shrink:0;">📖 ${t('applyBtn', 'Применить')}</button>
+        <button id="bSearchBtn" class="btn secondary" style="padding:8px 12px; margin:0; width:auto; flex-shrink:0;">🔍 ${t('searchBtn')}</button>
       </div>
       <div id="bSearchResults" class="search-results"></div>
 

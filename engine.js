@@ -539,7 +539,10 @@ class GameEngine {
     const pct = Math.max(0, Math.min(100, (remaining / this.timer.total) * 100));
     bar.style.width = pct + "%";
     bar.style.background = pct > 50 ? "var(--good)" : pct > 20 ? "var(--warn)" : "var(--bad)";
-    if (label) label.textContent = "Время на размышление: " + Math.max(0, Math.ceil(remaining)) + " с";
+    if (label) {
+      const lang = window.i18n ? window.i18n.currentLang : "ru";
+      label.textContent = (lang === "de" ? "Bedenkzeit: " : "Время на размышление: ") + Math.max(0, Math.ceil(remaining)) + (lang === "de" ? " s" : " с");
+    }
   }
 
   static computeMultiplier(streak) {
