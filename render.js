@@ -9,12 +9,13 @@ document.addEventListener("click", (e) => {
 const HEADER = `<h1>ТРЕНАЖЁР <span>СЛУЖЕНИЯ</span></h1>`;
 let selectedMode = "normal";
 
-function npcHeaderHTML(p, trust) {
+function npcHeaderHTML(p, trust, isTalking = false) {
   const mood = GameEngine.moodFromTrust(trust);
   const cue = GameEngine.getNpcCue(p, trust);
+  const avatarSvg = window.AvatarRenderer ? window.AvatarRenderer.render(p, trust, isTalking) : `<div class="avatar">${p.avatar}</div>`;
   return `
     <div class="npc">
-      <div class="avatar">${p.avatar}</div>
+      ${avatarSvg}
       <div class="npc-info">
         <div class="npc-name">
           <span>${p.name}</span>
@@ -162,7 +163,7 @@ function renderStep() {
         <span>✅ Верно: <b>${engine.session.correct}</b> · ❌ Неверно: <b>${engine.session.wrong}</b></span>
         <span>Баллы: <b>${engine.session.earned}</b></span>
       </div>
-      ${npcHeaderHTML(p, engine.session.trust)}
+      ${npcHeaderHTML(p, engine.session.trust, true)}
       <div id="dynamicNotices"></div>
       ${multi && engine.session.stepIndex > 0 && !step.isConflict ? `<div class="npc-trait" style="margin-bottom:12px;">Ситуация: «${card.theme.question}»</div>` : ""}
       ${step.isConflict ? `<div class="conflict-badge">⚠️ Спор! Снизьте градус напряжения</div>` : ""}
@@ -271,7 +272,11 @@ function renderStepFeedback(pl) {
       <button class="btn" id="nextBtn">${isEnd ? "Завершить сессию" : nextLabel}</button>
     </div>
   `;
-  soundFX.playPop();
+  if (tier === "poor") {
+    soundFX.playFail();
+  } else {
+    soundFX.playSuccess();
+  }
   const link = $(".scripture-link");
   if (link) link.addEventListener("click", () => openBibleModal(link.dataset.ref));
   $("#nextBtn").addEventListener("click", () => engine.advance());
@@ -361,6 +366,7 @@ function renderResult() {
       <button class="btn secondary" id="menuBtn">В меню</button>
     </div>
   `;
+  soundFX.playSuccess();
   $("#againBtn").addEventListener("click", () => engine.startSession(engine.session.level, engine.session.mode));
   $("#menuBtn").addEventListener("click", renderMenu);
 }
