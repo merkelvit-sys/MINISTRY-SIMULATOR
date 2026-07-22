@@ -15,11 +15,31 @@ const TIMEOUT_PENALTY = -2;
 const DEFAULT_THINK_TIME = 40;
 
 const BADGES = {
-  peaceMaker: { id: "peaceMaker", icon: "🕊️", name: "Кроткий ответ", desc: "Сгладил 3+ конфликтных ситуации в служении" },
-  scriptureExplorer: { id: "scriptureExplorer", icon: "📖", name: "Исследователь Писания", desc: "Успешно применил библейский стих 10+ раз" },
-  tactMaster: { id: "tactMaster", icon: "🤝", name: "Такт и уважение", desc: "Завершил сессию без единого напористого ответа" },
-  perfectionist: { id: "perfectionist", icon: "🏆", name: "Мастер служения", desc: "Достиг 90%+ эффективности в сессии" },
-  hardcoreMaster: { id: "hardcoreMaster", icon: "⚡", name: "Герой испытания", desc: "Успешно прошёл сессию в режиме «Испытание»" }
+  peaceMaker: {
+    id: "peaceMaker", icon: "🕊️",
+    name: { ru: "Кроткий ответ", de: "Sanfte Antwort" },
+    desc: { ru: "Сгладил 3+ конфликтных ситуации в служении", de: "3+ Konfliktsituationen im Dienst entschärft" }
+  },
+  scriptureExplorer: {
+    id: "scriptureExplorer", icon: "📖",
+    name: { ru: "Исследователь Писания", de: "Schriftforscher" },
+    desc: { ru: "Успешно применил библейский стих 10+ раз", de: "Bibelvers 10+ Mal angewendet" }
+  },
+  tactMaster: {
+    id: "tactMaster", icon: "🤝",
+    name: { ru: "Такт и уважение", de: "Takt & Respekt" },
+    desc: { ru: "Завершил сессию без единого напористого ответа", de: "Sitzung ohne aufdringliche Antworten beendet" }
+  },
+  perfectionist: {
+    id: "perfectionist", icon: "🏆",
+    name: { ru: "Мастер служения", de: "Dienstmeister" },
+    desc: { ru: "Достиг 90%+ эффективности в сессии", de: "90%+ Effizienz in einer Sitzung erreicht" }
+  },
+  hardcoreMaster: {
+    id: "hardcoreMaster", icon: "⚡",
+    name: { ru: "Герой испытания", de: "Held der Härteprüfung" },
+    desc: { ru: "Успешно прошёл сессию в режиме «Испытание»", de: "Härteprüfung erfolgreich absolviert" }
+  }
 };
 
 function scoreAnswer(answer, personality) {
@@ -255,7 +275,7 @@ class GameEngine {
         
         if (this.session.recentTones.length === 3 && this.session.recentTones.every(t => t === chosenTones[0])) {
           raw -= 2;
-          fatigueMsg = "Штраф за шаблонность: вы всё время выбираете один и тот же тон общения!";
+          fatigueMsg = { ru: "Штраф за шаблонность: вы всё время выбираете один и тот же тон общения!", de: "⚠️ Abwechslung fehlt: immer der gleiche Ton!" };
         }
       }
 
@@ -312,7 +332,7 @@ class GameEngine {
         personalityId: p.id,
         personalityName: p.name,
         chosenIndex,
-        chosenText: timedOut ? "Время истекло" : chosenAnsObj.text,
+        chosenText: timedOut ? { ru: "Время истекло", de: "Zeit abgelaufen" } : chosenAnsObj.text,
         chosenTones,
         bestText: bestAnsObj.text,
         bestTones: bestAnsObj.tones,
@@ -357,9 +377,9 @@ class GameEngine {
         if (!nextStep.isConflict && !nextStep._adapted) {
           nextStep._adapted = true;
           if (this.session.trust >= 75) {
-            nextStep.prompt = "Собеседник тронут вашим чутким подходом и готов слушать дальше: " + nextStep.prompt;
+            nextStep.prompt = { ru: "Собеседник тронут вашим чутким подходом и готов слушать дальше: " + (nextStep.prompt.ru || nextStep.prompt), de: "Gesprächspartner ist berührt und hört weiter zu: " + (nextStep.prompt.de || nextStep.prompt) };
           } else if (this.session.trust <= 45) {
-            nextStep.prompt = "Собеседник ещё сдерживает настороженность: " + nextStep.prompt;
+            nextStep.prompt = { ru: "Собеседник ещё сдерживает настороженность: " + (nextStep.prompt.ru || nextStep.prompt), de: "Gesprächspartner ist noch vorsichtig: " + (nextStep.prompt.de || nextStep.prompt) };
           }
         }
         renderStep();
@@ -370,19 +390,35 @@ class GameEngine {
   }
 
   searchScripture(query) {
-    if (!query || query.length < 3) return [];
+    if (!query || query.length < 2) return [];
     const q = query.toLowerCase();
     const results = [];
+    const lang = window.i18n ? window.i18n.currentLang : "ru";
+    
     for (const [key, obj] of Object.entries(SCRIPTURES)) {
-      if (key.toLowerCase().includes(q) || obj.text.toLowerCase().includes(q) || obj.keywords.some(k => k.toLowerCase().includes(q))) {
-        results.push(obj);
+      const refStr = typeof obj.ref === "object" ? (obj.ref[lang] || obj.ref.ru || key) : (obj.ref || key);
+      const textStr = typeof obj.text === "object" ? (obj.text[lang] || obj.text.ru || "") : (obj.text || "");
+      const kwList = Array.isArray(obj.keywords) 
+        ? obj.keywords 
+        : (obj.keywords && obj.keywords[lang] ? obj.keywords[lang] : (obj.keywords ? (obj.keywords.ru || []) : []));
+
+      if (
+        key.toLowerCase().includes(q) ||
+        refStr.toLowerCase().includes(q) ||
+        textStr.toLowerCase().includes(q) ||
+        kwList.some(k => k.toLowerCase().includes(q))
+      ) {
+        results.push({
+          ref: refStr,
+          text: textStr
+        });
       }
     }
     return results;
   }
 
   applyScripture(ref) {
-    if (this.session.scriptureBonusUsed) return { success: false, msg: "Вы уже приводили стих в этом шаге." };
+    if (this.session.scriptureBonusUsed) return { success: false, msg: { ru: "Вы уже приводили стих в этом шаге.", de: "Du hast diesen Vers bereits in diesem Schritt angeführt." } };
     this.session.scriptureBonusUsed = true;
     this.session.scriptureOpens++;
     
@@ -391,12 +427,12 @@ class GameEngine {
     
     if (step.scripture === ref) {
       this.session.trust = Math.min(100, this.session.trust + 15);
-      renderTrustUpdate(this.session.trust, "Отличный стих! Собеседник впечатлен (+15% доверия).", "good");
+      renderTrustUpdate(this.session.trust, { ru: "Отличный стих! Собеседник впечатлен (+15% доверия).", de: "Perfekter Vers! Gesprächspartner beeindruckt (+15% Vertrauen)." }, "good");
       return { success: true };
     } else {
       this.session.trust = Math.max(0, this.session.trust - 10);
       const left = this.session.trust <= 0;
-      renderTrustUpdate(this.session.trust, "Собеседник не понял, к чему этот стих. (-10% доверия)", "bad");
+      renderTrustUpdate(this.session.trust, { ru: "Собеседник не понял, к чему этот стих. (-10% доверия)", de: "Gesprächspartner verstand den Vers nicht. (-10% Vertrauen)" }, "bad");
       if (left) {
         this.resolveAnswer(-1);
       }
@@ -436,51 +472,47 @@ class GameEngine {
   }
 
   static moodFromTrust(t) {
-    if (t >= 80) return { face: "😊", label: "Расположен", color: "var(--good)" };
-    if (t >= 60) return { face: "🙂", label: "Заинтересован", color: "var(--good)" };
-    if (t >= 40) return { face: "😐", label: "Нейтрален", color: "var(--warn)" };
-    if (t >= 20) return { face: "😕", label: "Насторожен", color: "var(--warn)" };
-    if (t > 0)   return { face: "😠", label: "На грани", color: "var(--bad)" };
-    return { face: "🚶", label: "Ушёл", color: "var(--bad)" };
+    const lang = window.i18n ? window.i18n.currentLang : "ru";
+    if (t >= 80) return { face: "😊", label: lang === "de" ? "Aufgeschlossen" : "Расположен", color: "var(--good)" };
+    if (t >= 60) return { face: "🙂", label: lang === "de" ? "Interessiert" : "Заинтересован", color: "var(--good)" };
+    if (t >= 40) return { face: "😐", label: lang === "de" ? "Neutral" : "Нейтрален", color: "var(--warn)" };
+    if (t >= 20) return { face: "😕", label: lang === "de" ? "Skeptisch" : "Насторожен", color: "var(--warn)" };
+    if (t > 0)   return { face: "😠", label: lang === "de" ? "Gereizt" : "На грани", color: "var(--bad)" };
+    return { face: "🚶", label: lang === "de" ? "Gegangen" : "Ушёл", color: "var(--bad)" };
   }
 
   static getNpcCue(p, trust) {
-    if (trust >= 80) return "💭 Искренне расположен к разговору и с интересом слушает.";
-    if (trust >= 60) {
-      if (p.id === "sincere") return "💭 Ценит глубокие мысли из Библии и неторопливые рассуждения.";
-      if (p.id === "hurrying") return "💭 Очень мало времени — ждёт краткую и точную мысль.";
-      if (p.id === "skeptic") return "💭 Чувствителен к тону, положительно реагирует на сочувствие.";
-      if (p.id === "rel_leader") return "💭 Глубоко знает традиции, ценит усердное исследование Писания.";
-      if (p.id === "relative") return "💭 Переживает за отношения, ценит любовь и семейные узы.";
-      if (p.id === "colleague") return "💭 Опасается неловкости на работе/учёбе, ценит простоту.";
-      return "💭 Настроен на спокойное обсуждение.";
+    const lang = window.i18n ? window.i18n.currentLang : "ru";
+    if (trust >= 80) {
+      return lang === "de" 
+        ? "💭 Aufrichtig zugewandt und hört aufmerksam zu." 
+        : "💭 Искренне расположен к разговору и с интересом слушает.";
     }
-    if (trust >= 40) return "💭 Сомневается, внимательно оценивает ваш тон и искренность.";
-    if (trust > 0) return "💭 Насторожен и склонен завершить диалог при давлении.";
-    return "💭 Разговор завершён.";
+    if (trust >= 60) {
+      if (p.id === "sincere") return lang === "de" ? "💭 Schätzt tiefe biblische Gedanken und ruhige Überlegungen." : "💭 Ценит глубокие мысли из Библии и неторопливые рассуждения.";
+      if (p.id === "hurrying") return lang === "de" ? "💭 Hat wenig Zeit, braucht einen kurzen Gedanken." : "💭 Мало времени, нужна короткая мысль.";
+      if (p.id === "skeptic") return lang === "de" ? "💭 Reagiert empfindlich auf den Tonfall — schätzt Takt und Respekt." : "💭 Чувствителен к тону: откликается на такт и уважение.";
+      return lang === "de" ? "💭 Interessiert an einem guten Gespräch." : "💭 Заинтересован в хорошем разговоре.";
+    }
+    if (trust >= 40) {
+      return lang === "de" ? "💭 Überlegt, ob sich das Gespräch lohnt." : "💭 Думает, стоит ли продолжать разговор.";
+    }
+    if (trust >= 20) {
+      return lang === "de" ? "💭 Vorsichtig und zurückhaltend." : "💭 Настороже и сдержан.";
+    }
+    return lang === "de" ? "💭 Kurz davor, das Gespräch zu beenden." : "💭 Готов прекратить разговор.";
   }
 
   static getPedagogicalTip(personality, chosenTones, raw) {
-    if (raw > 0) {
-      return "💡 Отличный выбор! Вы выбрали тон, который полностью согласуется с характером собеседника.";
-    }
-    if (chosenTones.includes("pushy")) {
-      return "💡 Напористый тон отталкивает людей и снижает доверие. В служении важно сохранять кротость и уважение.";
-    }
-    if (chosenTones.includes("dismissive")) {
-      return "💡 Сухой ответ создаёт впечатление равнодушия. Сочувствие и такт помогают открывать сердца.";
-    }
-    if (chosenTones.includes("false")) {
-      return "💡 Искажение фактов или неточные утверждения разрушают доверие собеседника.";
-    }
-    if (personality.id === "hurrying" && chosenTones.includes("deep")) {
-      return "💡 Спешащему человеку сложно выслушать длинную мысль. Сначала дайте краткий ответ.";
-    }
-    if (personality.id === "skeptic" && !chosenTones.includes("tact")) {
-      return "💡 Эмоциональному собеседнику в первую очередь важно почувствовать сочувствие и уважение.";
-    }
-    return "💡 Старайтесь проявлять такт (respect) и мягко направлять мысль к Библии (deep).";
+    if (raw > 0) return { ru: '💡 Отличный выбор! Вы выбрали тон, который полностью согласуется с характером собеседника.', de: '💡 Perfekte Wahl! Der Ton passt zum Charakter.' };
+    if (chosenTones.includes('pushy')) return { ru: '💡 Напористый тон отталкивает людей и снижает доверие. В служении важно сохранять кротость и уважение.', de: '💡 Aufdringlicher Ton stößt ab. Bewahre Sanftmut und Respekt.' };
+    if (chosenTones.includes('dismissive')) return { ru: '💡 Сухой ответ создаёт впечатление равнодушия. Сочувствие и такт помогают открывать сердца.', de: '💡 Trockene Antwort wirkt gleichgültig.' };
+    if (chosenTones.includes('false')) return { ru: '💡 Искажение фактов или неточные утверждения разрушают доверие собеседника.', de: '💡 Tatsachenverdrehung zerstört Vertrauen.' };
+    if (personality.id === 'hurrying' && chosenTones.includes('deep')) return { ru: '💡 Спешащему человеку сложно выслушать длинную мысль. Сначала дайте краткий ответ.', de: '💡 Eiligen reicht eine kurze Antwort.' };
+    if (personality.id === 'skeptic' && !chosenTones.includes('tact')) return { ru: '💡 Эмоциональному собеседнику в первую очередь важно почувствовать сочувствие и уважение.', de: '💡 Emotionaler Gesprächspartner erwartet Mitgefühl und Respekt.' };
+    return { ru: '💡 Старайтесь проявлять такт (respect) и мягко направлять мысль к Библии (deep).', de: '💡 Zeige Takt (respect) und lenke sanft zur Bibel (deep).' };
   }
+
 
   static achievementsFor(s, pct) {
     const list = [];
