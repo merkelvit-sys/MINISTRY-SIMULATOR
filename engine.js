@@ -9,7 +9,7 @@ const shuffle = (arr) => {
   return a;
 };
 
-const SESSION_MIN = 5, SESSION_MAX = 6;
+const SESSION_MIN = 10, SESSION_MAX = 10;
 const TRUST_FACTOR = 7;
 const TIMEOUT_PENALTY = -2;
 const DEFAULT_THINK_TIME = 40;
@@ -564,4 +564,76 @@ class GameEngine {
   }
 }
 
+class MinistryScriptureMatcher {
+  static evaluateRelevance(selectedRef, stepScripture) {
+    if (stepScripture === selectedRef) {
+      return { 
+        score: 15, 
+        isPerfect: true,
+        msg: { 
+          ru: "🎯 Идеально подобранный стих! Собеседник тронут точностью мысли (+15% доверия).", 
+          de: "🎯 Perfekt gewählter Bibeltext! Der Gesprächspartner ist tief berührt (+15% Vertrauen)." 
+        } 
+      };
+    } else {
+      return { 
+        score: -10, 
+        isPerfect: false,
+        msg: { 
+          ru: "💭 Стек затронул другую тему. Собеседник не совсем понял связь (-10% доверия).", 
+          de: "💭 Der Vers betraf ein anderes Thema. Der Gesprächspartner verstand den Zusammenhang nicht (-10% Vertrauen)." 
+        } 
+      };
+    }
+  }
+}
+
+class MinistryStyleProfiler {
+  static generateDeepAnalysis(sessionLog) {
+    const toneCounts = { tact: 0, deep: 0, brief: 0, respect: 0, pushy: 0, dismissive: 0 };
+    
+    if (sessionLog) {
+      sessionLog.forEach(log => {
+        if (log.chosenTones) {
+          log.chosenTones.forEach(t => { if (toneCounts[t] !== undefined) toneCounts[t]++; });
+        }
+      });
+    }
+
+    const total = Object.values(toneCounts).reduce((a, b) => a + b, 0) || 1;
+    const tactPct = Math.round(((toneCounts.tact + toneCounts.respect) / total) * 100);
+    const deepPct = Math.round((toneCounts.deep / total) * 100);
+    const pushyPct = Math.round((toneCounts.pushy / total) * 100);
+
+    let advice = {
+      ru: "Ваш стиль сбалансирован. Вы умело сочетаете сочувствие с библейской аргументацией.",
+      de: "Dein Gesprächsstil ist ausgewogen. Du verbindest Mitgefühl gekonnt mit biblischer Argumentation."
+    };
+
+    if (pushyPct > 25) {
+      advice = {
+        ru: "💡 Замечена склонность к излишнему напору. Старайтесь чаще задавать вовлекающие вопросы и давать человеку свободу выбора.",
+        de: "💡 Neigung zu zu viel Druck bemerkt. Versuche öfter Fragen zu stellen und Wahlfreiheit zu lassen."
+      };
+    } else if (tactPct > 60 && deepPct < 20) {
+      advice = {
+        ru: "💡 Вы очень доброжелательны и проявляете такт, но не стесняйтесь более задействовать силу самого Слова Бога (Библию).",
+        de: "💡 Du bist sehr freundlich und taktvoll, aber nutze noch mehr die Kraft von Gottes Wort (Bibel)."
+      };
+    } else if (deepPct > 60 && tactPct < 25) {
+      advice = {
+        ru: "💡 Вы прекрасно цитируете Писание, но помните, что сначала важно выслушать человека и проявить сочувствие.",
+        de: "💡 Du zitierst die Schrift hervorragend, aber denke daran, zuerst zuzuhören und Mitgefühl zu zeigen."
+      };
+    }
+
+    return {
+      ratios: { tactPct, deepPct, pushyPct },
+      advice
+    };
+  }
+}
+
 const engine = new GameEngine();
+window.MinistryScriptureMatcher = MinistryScriptureMatcher;
+window.MinistryStyleProfiler = MinistryStyleProfiler;

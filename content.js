@@ -43,7 +43,7 @@ const SCRIPTURES = {
   },
   "Деяния 24:15": {
     ref: { ru: "Деяния 24:15", de: "Apostelgeschichte 24:15" },
-    text: { ru: "Я, как и они, надеюcь на Бога, что будет воскресение праведных и неправедных.", de: "Und ich habe die Hoffnung auf Gott, dass es eine Auferstehung sowohl der Gerechten als auch der Ungerechten geben wird." },
+    text: { ru: "Я, как и они, надеюсь на Бога, что будет воскресение праведных и неправедных.", de: "Und ich habe die Hoffnung auf Gott, dass es eine Auferstehung sowohl der Gerechten als auch der Ungerechten geben wird." },
     keywords: { ru: ["воскресение", "надежда", "праведные", "неправедные", "умершие"], de: ["auferstehung", "hoffnung", "gerechte", "ungerechte"] }
   },
   "Иоанна 17:3": {
@@ -239,8 +239,21 @@ const CONFLICT_STEPS = {
   }
 };
 
+/* Helper for creating concise theme objects */
+function createTheme(id, qRu, qDe, scripture, ansArray) {
+  return {
+    id,
+    question: { ru: qRu, de: qDe },
+    scripture: scripture || "",
+    answers: ansArray.map(a => ({
+      text: { ru: a[0], de: a[1] },
+      tones: a[2]
+    }))
+  };
+}
+
 /* ================================================================
-   100% АУТЕНТИЧНЫЕ УРОВНИ И ТЕМЫ СЛУЖЕНИЯ (LEVELS 1 - 6)
+   6 ПОЛНЫХ УРОВНЕЙ СЛУЖЕНИЯ (ПО 10 ТЕМ В КАЖДОМ, ВСЕГО 60 ТЕМ!)
    ================================================================ */
 
 const LEVEL_1 = {
@@ -248,158 +261,66 @@ const LEVEL_1 = {
   name: { ru: "Стенд и общественные места", de: "Trolley-Dienst und Öffentlichkeit" },
   desc: { ru: "Публичное служение у стенда с литературой", de: "Öffentlicher Dienst mit dem Literatur-Trolley" },
   themes: [
-    {
-      id: "1.1",
-      question: {
-        ru: "Что это за стенд? Вы продаёте эти книги и журналы?",
-        de: "Was ist das für ein Stand? Verkaufen Sie diese Bücher und Zeitschriften?"
-      },
-      scripture: "Матфея 10:8",
-      answers: [
-        {
-          text: {
-            ru: "Здравствуйте! Это информационный стенд. Вся наша литература бесплатна, мы ничего не продаём. Хотите посмотреть?",
-            de: "Guten Tag! Das ist ein Informationsstand. Alle unsere Publikationen sind kostenlos, wir verkaufen nichts. Möchten Sie mal schauen?"
-          },
-          tones: ["fact", "respect"]
-        },
-        {
-          text: {
-            ru: "Добрый день! Мы бесплатно делимся библейскими мыслями, как повелел Иисус: «Даром получили — даром давайте» (Матфея 10:8).",
-            de: "Guten Tag! Wir teilen kostenlose Gedanken aus der Bibel, so wie Jesus sagte: „Empfangen habt ihr kostenfrei, gebt kostenfrei“ (Matthäus 10:8)."
-          },
-          tones: ["deep", "respect"]
-        },
-        {
-          text: {
-            ru: "Нет, всё абсолютно бесплатно. Можете взять то, что заинтересует.",
-            de: "Nein, alles ist völlig kostenfrei. Sie können sich gerne etwas mitnehmen."
-          },
-          tones: ["brief"]
-        },
-        {
-          text: {
-            ru: "Вам обязательно нужно это прочитать, это самое важное!",
-            de: "Das müssen Sie unbedingt lesen, es ist das Wichtigste im Leben!"
-          },
-          tones: ["pushy"]
-        }
-      ]
-    },
-    {
-      id: "1.2",
-      question: {
-        ru: "Что такое сайт JW.ORG?",
-        de: "Was ist die Website JW.ORG?"
-      },
-      scripture: "",
-      answers: [
-        {
-          text: {
-            ru: "Это наш официальный сайт. Там можно читать Библию и статьи на сотнях языков без рекламы и платы. Вот QR-код.",
-            de: "Das ist unsere offizielle Website. Dort kann man die Bibel und Artikel in hunderten Sprachen lesen – ohne Werbung oder Kosten. Hier ist ein QR-Code."
-          },
-          tones: ["fact", "respect"]
-        },
-        {
-          text: {
-            ru: "Это бесплатный ресурс с ответами на важные жизненные вопросы на основе Библии.",
-            de: "Das ist eine kostenlose Online-Quelle mit Antworten auf wichtige Lebensfragen auf der Grundlage der Bibel."
-          },
-          tones: ["brief"]
-        },
-        {
-          text: {
-            ru: "Сайт помогает исследовать Писание и находить практические советы для семьи и жизни.",
-            de: "Die Website hilft dabei, die Heilige Schrift zu erforschen und praktische Ratschläge für das Familienleben zu finden."
-          },
-          tones: ["deep"]
-        },
-        {
-          text: {
-            ru: "Зайдите в интернет и сами посмотрите.",
-            de: "Geben Sie es einfach bei Google ein, dort finden Sie alles."
-          },
-          tones: ["dismissive"]
-        }
-      ]
-    },
-    {
-      id: "1.3",
-      question: {
-        ru: "Почему вы стоите молча и ничего не предлагаете прохожим?",
-        de: "Warum stehen Sie schweigend da und sprechen die Passanten nicht an?"
-      },
-      scripture: "",
-      answers: [
-        {
-          text: {
-            ru: "Мы уважаем право выбора людей. Мы здесь, чтобы помочь тем, кто сам проявляет интерес и хочет поговорить.",
-            de: "Wir respektieren die Entscheidungsfreiheit der Menschen. Wir sind hier, um denjenigen zu helfen, die selbst Interesse zeigen."
-          },
-          tones: ["respect", "tact"]
-        },
-        {
-          text: {
-            ru: "Наши стенды открыты для каждого. Если у человека есть вопрос, он может свободно подойти.",
-            de: "Unsere Stände stehen allen offen. Wenn jemand eine Frage hat, kann er gerne auf uns zukommen."
-          },
-          tones: ["fact", "respect"]
-        },
-        {
-          text: {
-            ru: "Мы не хотим быть навязчивыми.",
-            de: "Wir möchten nicht aufdringlich sein."
-          },
-          tones: ["brief"]
-        },
-        {
-          text: {
-            ru: "Вам нужно заставить людей слушать!",
-            de: "Man sollte die Leute zwingen zuzuhören!"
-          },
-          tones: ["pushy"]
-        }
-      ]
-    },
-    {
-      id: "1.4",
-      question: {
-        ru: "Как проходят ваши бесплатные интерактивные уроки Библии?",
-        de: "Wie läuft ein kostenloser interaktiver Bibelkurs ab?"
-      },
-      scripture: "",
-      answers: [
-        {
-          text: {
-            ru: "Это удобное обсуждение по темам: вы задаёте вопросы, а мы вместе находим ответы в Библии в комфортном для вас темпе.",
-            de: "Es ist ein praktisches Gespräch nach Themen: Sie stellen Fragen und wir finden gemeinsam die Antworten in der Bibel – in Ihrem Tempo."
-          },
-          tones: ["fact", "respect"]
-        },
-        {
-          text: {
-            ru: "Мы рассматриваем, что Библия говорит о будущем, семье и обретении душевного покоя.",
-            de: "Wir betrachten, was die Bibel über die Zukunft, die Familie und den inneren Frieden sagt."
-          },
-          tones: ["deep"]
-        },
-        {
-          text: {
-            ru: "Курс бесплатный и проходит в удобное для вас время.",
-            de: "Der Kurs ist kostenlos und findet zu einer für Sie passenden Zeit statt."
-          },
-          tones: ["brief"]
-        },
-        {
-          text: {
-            ru: "Это обязательная программа для каждого человека.",
-            de: "Das ist ein Pflichtprogramm für jeden Menschen."
-          },
-          tones: ["pushy"]
-        }
-      ]
-    }
+    createTheme("1.1", "Что это за стенд? Вы продаёте эти книги и журналы?", "Was ist das für ein Stand? Verkaufen Sie diese Bücher und Zeitschriften?", "Матфея 10:8", [
+      ["Здравствуйте! Это информационный стенд. Вся литература бесплатна.", "Guten Tag! Das ist ein Informationsstand. Alle Publikationen sind kostenlos.", ["fact", "respect"]],
+      ["Добрый день! Мы бесплатно делимся библейскими мыслями («Даром получили — даром давайте»).", "Guten Tag! Wir teilen kostenlose Gedanken aus der Bibel («Empfangen habt ihr kostenfrei, gebt kostenfrei»).", ["deep", "respect"]],
+      ["Нет, всё абсолютно бесплатно. Можете взять то, что заинтересует.", "Nein, alles ist völlig kostenfrei. Sie können sich gerne etwas mitnehmen.", ["brief"]],
+      ["Вам обязательно нужно это прочитать, это самое важное!", "Das müssen Sie unbedingt lesen, es ist das Wichtigste!", ["pushy"]]
+    ]),
+    createTheme("1.2", "Что такое сайт JW.ORG?", "Was ist die Website JW.ORG?", "", [
+      ["Это наш официальный сайт с бесплатной Библией и статьями на сотнях языков.", "Das ist unsere offizielle Website mit kostenlosen Bibeln und Artikeln in hunderten Sprachen.", ["fact", "respect"]],
+      ["Это ресурс с бесплатными ответами на важные жизненные вопросы на основе Библии.", "Das ist eine kostenlose Online-Quelle mit Antworten auf wichtige Lebensfragen auf Bibelbasis.", ["brief"]],
+      ["Сайт помогает исследовать Писание и находить практические советы для семьи.", "Die Website hilft dabei, die Heilige Schrift zu erforschen und praktische Ratschläge zu finden.", ["deep"]],
+      ["Зайдите в интернет и сами посмотрите.", "Geben Sie es einfach bei Google ein, dort finden Sie alles.", ["dismissive"]]
+    ]),
+    createTheme("1.3", "Почему вы стоите молча и ничего не предлагаете прохожим?", "Warum stehen Sie schweigend da und sprechen die Passanten nicht an?", "", [
+      ["Мы уважаем право выбора людей и помогаем тем, кто сам проявляет интерес.", "Wir respektieren die Entscheidungsfreiheit der Menschen und helfen denen, die selbst Interesse zeigen.", ["respect", "tact"]],
+      ["Наши стенды открыты для каждого. Если у человека есть вопрос, он может свободно подойти.", "Unsere Stände stehen allen offen. Wenn jemand eine Frage hat, kann er gerne kommen.", ["fact", "respect"]],
+      ["Мы не хотим быть навязчивыми.", "Wir möchten nicht aufdringlich sein.", ["brief"]],
+      ["Вам нужно заставить людей слушать!", "Man sollte die Leute zwingen zuzuhören!", ["pushy"]]
+    ]),
+    createTheme("1.4", "Как проходят ваши бесплатные интерактивные уроки Библии?", "Wie läuft ein kostenloser interaktiver Bibelkurs ab?", "", [
+      ["Это удобное обсуждение по темам: вы задаёте вопросы, а мы находим ответы в Библии.", "Es ist ein praktisches Gespräch nach Themen: Sie stellen Fragen, wir finden Antworten in der Bibel.", ["fact", "respect"]],
+      ["Мы рассматриваем, что Библия говорит о будущем, семье и обретении душевного покоя.", "Wir betrachten, was die Bibel über die Zukunft, die Familie und den inneren Frieden sagt.", ["deep"]],
+      ["Курс бесплатный и проходит в удобное для вас время.", "Der Kurs ist kostenlos und findet zu einer für Sie passenden Zeit statt.", ["brief"]],
+      ["Это обязательная программа для каждого человека.", "Das ist ein Pflichtprogramm für jeden Menschen.", ["pushy"]]
+    ]),
+    createTheme("1.5", "Кто такие Свидетели Иеговы?", "Wer sind Jehovas Zeugen?", "", [
+      ["Мы — всемирная христианская община, которая строит свою веру строго на Библии.", "Wir sind eine weltweite christliche Gemeinschaft, die ihren Glauben fest auf die Bibel stützt.", ["fact", "respect"]],
+      ["Мы стараемся подражать Христу и делиться библейской надеждой с ближними.", "Wir versuchen, Jesus nachzuahmen und die biblische Hoffnung mit den Mitmenschen zu teilen.", ["deep", "respect"]],
+      ["Мы христиане, изучающие Библию.", "Wir sind Christen, die die Bibel studieren.", ["brief"]],
+      ["Мы единственные праведники на этой земле.", "Wir sind die einzigen Gerechten auf dieser Erde.", ["false"]]
+    ]),
+    createTheme("1.6", "Могу я взять журнал для своей семьи?", "Kann ich eine Zeitschrift für meine Familie mitnehmen?", "", [
+      ["Конечно! Возьмите, в нём как раз есть полезные статьи для семьи и воспитания детей.", "Natürlich! Nehmen Sie gerne eine mit, darin gibt es nützliche Artikel für die Familie.", ["tact", "respect"]],
+      ["Разумеется. Все материалы бесплатны и помогут вам вместе исследовать Писание.", "Sehr gerne. Alle Publikationen sind kostenlos und helfen beim gemeinsamen Bibellesen.", ["deep", "respect"]],
+      ["Да, берите сколько нужно.", "Ja, nehmen Sie so viel Sie brauchen.", ["brief"]],
+      ["Только если вы пообещаете прочитать всё от корки до корки!", "Nur wenn Sie versprechen, alles von vorne bis hinten zu lesen!", ["pushy"]]
+    ]),
+    createTheme("1.7", "Почему у вас литература на разных языках?", "Warum haben Sie Literatur in verschiedenen Sprachen?", "Деяния 17:11", [
+      ["Люди любят читать Слово Бога на родном языке. Мы стараемся помочь каждому.", "Menschen lesen Gottes Wort am liebsten in ihrer Muttersprache. Wir möchten jedem helfen.", ["fact", "respect"]],
+      ["В Деяниях показано, что весть Бога предназначена для всех народов и языков.", "Die Apostelgeschichte zeigt, dass Gottes Botschaft für alle Nationen und Sprachen bestimmt ist.", ["deep"]],
+      ["Чтобы каждый мог выбрать свой язык.", "Damit jeder seine Sprache wählen kann.", ["brief"]],
+      ["Чтобы показать, сколько у нас разных книг.", "Um zu zeigen, wie viele verschiedene Bücher wir haben.", ["dismissive"]]
+    ]),
+    createTheme("1.8", "Чем ваш сайт отличается от других?", "Was unterscheidet Ihre Website von anderen?", "", [
+      ["На jw.org нет коммерческой рекламы, сбора средств или платного контента.", "Auf jw.org gibt es keine kommerzielle Werbung, keine Spendenaufrufe und keine kostenpflichtigen Inhalte.", ["fact", "respect"]],
+      ["Он полностью посвящён библейскому просвещению и укреплению семейных ценностей.", "Sie widmet sich ganz der biblischen Bildung und der Stärkung von Familienwerten.", ["deep"]],
+      ["Там всё бесплатно и без рекламы.", "Dort ist alles kostenlos und werbefrei.", ["brief"]],
+      ["Наш сайт — единственный хороший сайт в интернете.", "Unsere Website ist die einzige gute Website im Internet.", ["pushy"]]
+    ]),
+    createTheme("1.9", "Как финансируется ваша деятельность?", "Wie wird Ihre Tätigkeit finanziert?", "2 Коринфянам 9:7", [
+      ["Наша деятельность поддерживается добровольными пожертвованиями людей по всему миру.", "Unsere Tätigkeit wird durch freiwillige Spenden von Menschen auf der ganzen Welt unterstützt.", ["fact", "respect"]],
+      ["В Библии сказано: «Каждый пусть поступает, как решил в своём сердце, не с неохотой» (2 Коринфянам 9:7).", "In der Bibel heißt es: «Jeder gebe, wie er es sich im Herzen vorgenommen hat, nicht widerwillig» (2. Korinther 9:7).", ["deep"]],
+      ["Всё держится на добровольных пожертвованиях.", "Alles basiert auf freiwilligen Spenden.", ["brief"]],
+      ["Нам платят за каждую разданную книгу.", "Wir werden für jedes verteilte Buch bezahlt.", ["false"]]
+    ]),
+    createTheme("1.10", "С чего лучше начать чтение Библии?", "Womit beginnt man am besten beim Bibellesen?", "Римлянам 15:4", [
+      ["Многие начинают с Евангелий (например, от Марка или Матфея), чтобы узнать о жизни Иисуса.", "Viele beginnen mit den Evangelien (z.B. Markus oder Matthäus), um das Leben Jesu kennenzulernen.", ["fact", "respect"]],
+      ["В Римлянам 15:4 говорится, что Писания написаны для нашей надежды. Задавайте вопросы и ищите ответы.", "Römer 15:4 zeigt, dass die Schriften zu unserem Trost da sind. Stellen Sie Fragen und suchen Sie Antworten.", ["deep"]],
+      ["Начните с Нового Завета.", "Beginnen Sie mit dem Neuen Testament.", ["brief"]],
+      ["Читайте всё подряд с первой страницы, иначе ничего не поймёте!", "Lesen Sie alles hintereinander ab der ersten Seite, sonst verstehen Sie nichts!", ["pushy"]]
+    ])
   ]
 };
 
@@ -408,172 +329,66 @@ const LEVEL_2 = {
   name: { ru: "Разговор у двери", de: "Gespräche an der Haustür" },
   desc: { ru: "Важные жизненные вопросы и утешение из Писания", de: "Wichtige Lebensfragen und Trost aus der Heiligen Schrift" },
   themes: [
-    {
-      id: "2.1",
-      question: {
-        ru: "Почему в мире столько страданий, если Бог любящий?",
-        de: "Warum lässt Gott so viel Leid zu, wenn er doch liebevoll ist?"
-      },
-      steps: [
-        {
-          prompt: {
-            ru: "Почему в мире столько страданий? Если Бог добрый, почему столько боли?",
-            de: "Warum gibt es so viel Leid auf der Welt? Wenn Gott gut ist, warum dann so viel Schmerz?"
-          },
-          scripture: "",
-          answers: [
-            {
-              text: {
-                ru: "Это очень важный вопрос, который волнует многих. Мне жаль, что людям приходится сталкиваться с такой болью.",
-                de: "Das ist eine sehr wichtige Frage, die viele Menschen beschäftigt. Es tut mir leid, dass die Menschen so viel Schmerz erleben müssen."
-              },
-              tones: ["tact", "respect"]
-            },
-            {
-              text: {
-                ru: "Я понимаю вас. Когда вокруг столько горя, естественный вопрос — почему Бог молчит.",
-                de: "Ich verstehe Sie. Wenn es so viel Leid gibt, fragt man sich natürlich, warum Gott zu schweigen scheint."
-              },
-              tones: ["tact"]
-            },
-            {
-              text: {
-                ru: "Бог допускает это для свободы воли.",
-                de: "Gott lässt das wegen des freien Willens zu."
-              },
-              tones: ["brief"]
-            },
-            {
-              text: {
-                ru: "Бог наказывает людей за их грехи.",
-                de: "Gott bestraft die Menschen für ihre Sünden."
-              },
-              tones: ["false"]
-            }
-          ]
-        },
-        {
-          prompt: {
-            ru: "Собеседник немного расположился. Что скажете дальше о причине страданий?",
-            de: "Der Gesprächspartner wird zugänglicher. Was sagen Sie als Nächstes zur Ursache des Leids?"
-          },
-          scripture: "1 Иоанна 5:19",
-          answers: [
-            {
-              text: {
-                ru: "Библия показывает, что Бог не виновен в зле. В 1 Иоанна 5:19 говорится, что весь мир находится во власти Злого, но Бог обещает всё исправить.",
-                de: "Die Bibel zeigt, dass Gott nicht für das Böse verantwortlich ist. In 1. Johannes 5:19 heißt es, dass die ganze Welt in der Macht des Bösen liegt, aber Gott verspricht Besserung."
-              },
-              tones: ["deep", "tact"]
-            },
-            {
-              text: {
-                ru: "Согласно 1 Иоанна 5:19, правитель этого мира — Сатана. Бог временно допускает это, чтобы доказать своё право править.",
-                de: "Gemäß 1. Johannes 5:19 ist der Herrscher dieser Welt Satan. Gott lässt dies vorübergehend zu, um sein Recht zu regieren zu beweisen."
-              },
-              tones: ["fact", "deep"]
-            },
-            {
-              text: {
-                ru: "Страдания временны, скоро всё изменится.",
-                de: "Das Leid ist nur vorübergehend, bald wird sich alles ändern."
-              },
-              tones: ["brief"]
-            },
-            {
-              text: {
-                ru: "Надо просто терпеть и не задавать лишних вопросов.",
-                de: "Man muss einfach erdulden und keine unnötigen Fragen stellen."
-              },
-              tones: ["pushy"]
-            }
-          ]
-        }
-      ]
-    },
-    {
-      id: "2.2",
-      question: {
-        ru: "Столько войн вокруг — о каком Боге мира вы говорите?",
-        de: "So viele Kriege überall — von welchem Gott des Friedens sprechen Sie?"
-      },
-      steps: [
-        {
-          prompt: {
-            ru: "Вокруг столько войн и насилия. Как в таком мире верить в Бога?",
-            de: "Überall Kriege und Gewalt. Wie kann man in einer solchen Welt an Gott glauben?"
-          },
-          scripture: "",
-          answers: [
-            {
-              text: {
-                ru: "Новости действительно пугают, и ваше беспокойство абсолютно понятно и оправданно.",
-                de: "Die Nachrichten sind wirklich beängstigend, und Ihre Sorge ist völlig verständlich und berechtigt."
-              },
-              tones: ["tact", "respect"]
-            },
-            {
-              text: {
-                ru: "Видеть войны и человеческое горе очень тяжело. Согласен с вами, мир очень нуждается в покое.",
-                de: "Kriege und menschliches Leid zu sehen ist sehr schwer. Ich stimme Ihnen zu, die Welt braucht dringend Frieden."
-              },
-              tones: ["tact"]
-            },
-            {
-              text: {
-                ru: "Войны всегда были и будут.",
-                de: "Kriege gab es schon immer und wird es immer geben."
-              },
-              tones: ["dismissive"]
-            },
-            {
-              text: {
-                ru: "Это всё признаки конца света!",
-                de: "Das sind alles Zeichen für das Ende der Welt!"
-              },
-              tones: ["pushy"]
-            }
-          ]
-        },
-        {
-          prompt: {
-            ru: "Что говорит Библия об окончании войн?",
-            de: "Was sagt die Bibel über das Ende von Kriegen?"
-          },
-          scripture: "Псалом 46:9",
-          answers: [
-            {
-              text: {
-                ru: "В Псалме 46:9 есть чудесное обещание: Бог «по всей земле прекращает войны». Он уничтожит всё оружие и установит вечный мир.",
-                de: "In Psalm 46:9 gibt es ein wunderbares Versprechen: Gott „macht dem Krieg auf der ganzen Erde ein Ende“. Er wird alle Waffen vernichten."
-              },
-              tones: ["deep", "fact"]
-            },
-            {
-              text: {
-                ru: "Царство Бога заменяет человеческие правительства, которые не способны принести мир (Псалом 46:9).",
-                de: "Gottes Königreich wird menschliche Regierungen ersetzen, die keinen Frieden bringen können (Psalm 46:9)."
-              },
-              tones: ["deep"]
-            },
-            {
-              text: {
-                ru: "Бог прекратит все войны на земле.",
-                de: "Gott wird allen Kriegen auf der Erde ein Ende machen."
-              },
-              tones: ["brief"]
-            },
-            {
-              text: {
-                ru: "Люди сами виноваты, что воюют.",
-                de: "Die Menschen sind selbst schuld, dass sie Kriege führen."
-              },
-              tones: ["false"]
-            }
-          ]
-        }
-      ]
-    }
+    createTheme("2.1", "Почему в мире столько страданий, если Бог любящий?", "Warum lässt Gott so viel Leid zu, wenn er doch liebevoll ist?", "1 Иоанна 5:19", [
+      ["Это очень важный вопрос. Мне жаль, что людям приходится сталкиваться с такой болью.", "Das ist eine sehr wichtige Frage. Es tut mir leid, dass Menschen so viel Schmerz erleben müssen.", ["tact", "respect"]],
+      ["В 1 Иоанна 5:19 говорится, что весь мир во власти Злого, но Бог обещает всё исправить.", "In 1. Johannes 5:19 heißt es, dass die ganze Welt im Bösen liegt, aber Gott verspricht Besserung.", ["deep", "tact"]],
+      ["Страдания временны, скоро всё изменится.", "Das Leid ist nur vorübergehend, bald wird sich alles ändern.", ["brief"]],
+      ["Бог наказывает людей за их грехи.", "Gott bestraft die Menschen für ihre Sünden.", ["false"]]
+    ]),
+    createTheme("2.2", "Столько войн вокруг — о каком Боге мира вы говорите?", "So viele Kriege überall — von welchem Gott des Friedens sprechen Sie?", "Псалом 46:9", [
+      ["Новости действительно пугают, и ваше беспокойство абсолютно понятно и оправданно.", "Die Nachrichten sind wirklich beängstigend, und Ihre Sorge ist völlig verständlich.", ["tact", "respect"]],
+      ["В Псалме 46:9 есть обещание: Бог «по всей земле прекращает войны» и установит вечный мир.", "In Psalm 46:9 gibt es das Versprechen: Gott «macht dem Krieg auf der ganzen Erde ein Ende».", ["deep", "fact"]],
+      ["Бог прекратит все войны на земле.", "Gott wird allen Kriegen auf der Erde ein Ende machen.", ["brief"]],
+      ["Люди сами виноваты, что воюют.", "Die Menschen sind selbst schuld, dass sie Kriege führen.", ["false"]]
+    ]),
+    createTheme("2.3", "Что происходит с человеком после смерти?", "Was passiert mit einem Menschen nach dem Tod?", "Екклесиаст 9:5", [
+      ["Это естественный вопрос для каждого, кто терял близких. Библия даёт очень ясный ответ.", "Das ist eine natürliche Frage für jeden, der Angehörige verloren hat. Die Bibel gibt eine klare Antwort.", ["tact", "respect"]],
+      ["В Екклесиасте 9:5 сказано: «мёртвые ничего не знают». Они находятся в состоянии бессознательного покоя.", "In Prediger 9:5 heißt es: «die Toten wissen gar nichts». Sie sind in einem Zustand des Ruhens.", ["deep"]],
+      ["Мёртвые покоятся и ничего не чувствуют.", "Die Toten ruhen und fühlen nichts.", ["brief"]],
+      ["Душа человека сразу летит в ад или рай.", "Die Seele kommt sofort in die Hölle oder in den Himmel.", ["false"]]
+    ]),
+    createTheme("2.4", "Есть ли надежда снова увидеть умерших близких?", "Gibt es Hoffnung, verstorbene Angehörige wiederzusehen?", "Деяния 24:15", [
+      ["Мысль о встрече с родными приносит огромное утешение. Бог обещает воскресение.", "Der Gedanke an ein Wiedersehen bringt großen Trost. Gott verspricht die Auferstehung.", ["tact", "respect"]],
+      ["В Деяниях 24:15 записана надежда: «будет воскресение праведных и неправедных» прямо здесь на земле.", "Apostelgeschichte 24:15 gibt Hoffnung: Es wird eine «Auferstehung der Gerechten und Ungerechten» geben.", ["deep"]],
+      ["Библия обещает воскресение умерших.", "Die Bibel verspricht die Auferstehung der Toten.", ["brief"]],
+      ["Нет, кто умер — тот исчез навсегда.", "Nein, wer tot ist, ist für immer weg.", ["dismissive"]]
+    ]),
+    createTheme("2.5", "Зачем молиться, если Бог и так всё знает?", "Warum beten, wenn Gott ohnehin alles weiß?", "Филиппийцам 4:6", [
+      ["Молитва — это не просто передача информации, а наш личный разговор с любящим Отцом.", "Das Gebet ist nicht nur Informationsweitergabe, sondern ein persönliches Gespräch mit dem Vater.", ["tact", "respect"]],
+      ["В Филиппийцам 4:6 советуется открывать свои просьбы Богу, и его мир сохранит наши сердца.", "In Philipper 4:6 wird geraten, Gott die Bitten bekannt zu machen; sein Frieden wird uns behüten.", ["deep"]],
+      ["Молитва приносит душевный покой и сближает с Богом.", "Das Gebet bringt Seelenfrieden und bringt uns Gott näher.", ["brief"]],
+      ["Заученные молитвы надо повторять по 10 раз в день.", "Auswendig gelernte Gebete muss man 10 Mal am Tag wiederholen.", ["false"]]
+    ]),
+    createTheme("2.6", "Как укрепить брак и сохранить мир в семье?", "Wie kann man die Ehe stärken und den Frieden in der Familie bewahren?", "Ефесянам 5:33", [
+      ["Крепкая семья строится на взаимном уважении и готовности прощать.", "Eine starke Familie baut auf gegenseitigem Respekt und Vergebungsbereitschaft auf.", ["tact", "respect"]],
+      ["В Ефесянам 5:33 даётся золотой совет: мужу любить жену, а жене глубоко уважать мужа.", "In Epheser 5:33 steht der goldene Rat: Der Mann soll die Frau lieben, die Frau den Mann achten.", ["deep"]],
+      ["Библейские советы помогают избегать конфликтов.", "Biblische Ratschläge helfen, Konflikte zu vermeiden.", ["brief"]],
+      ["Развод — единственное решение любых проблем.", "Scheidung ist die einzige Lösung für alle Probleme.", ["dismissive"]]
+    ]),
+    createTheme("2.7", "Что Библия говорит о будущем нашей планеты?", "Was sagt die Bibel über die Zukunft unseres Planeten?", "Откровение 21:4", [
+      ["Бог создал Землю не для уничтожения, а для того, чтобы она была прекрасным домом для людей.", "Gott hat die Erde nicht zur Vernichtung erschaffen, sondern als schönes Zuhause für Menschen.", ["fact", "respect"]],
+      ["В Откровении 21:4 обещается, что больше не будет смерти, боли и слез, а Земля станет раем.", "Offenbarung 21:4 verspricht, dass es keinen Tod, Schmerz und Tränen mehr geben wird.", ["deep"]],
+      ["Земля сохранится и станет райским домом.", "Die Erde wird erhalten bleiben und ein Paradies werden.", ["brief"]],
+      ["Наша планета полностью сгорит в огне.", "Unser Planet wird im Feuer komplett verbrennen.", ["false"]]
+    ]),
+    createTheme("2.8", "Почему важно знать личное имя Бога — Иегова?", "Warum ist es wichtig, Gottes persönlichen Namen – Jehova – zu kennen?", "Исаия 42:8", [
+      ["У каждого личного друга есть имя. Бог хочет, чтобы мы знали его имя и приближались к нему.", "Jeder persönliche Freund hat einen Namen. Gott möchte, dass wir seinen Namen kennen.", ["tact", "respect"]],
+      ["В Исаии 42:8 Бог говорит: «Я Иегова. Это моё имя». Оно встречается в древних текстах тысячи раз.", "In Jesaja 42:8 sagt Gott: «Ich bin Jehova. Das ist mein Name.» Er steht tausendfach in den Urschriften.", ["deep"]],
+      ["Имя Бога открывает его личность и замысел.", "Der Name Gottes offenbart seine Persönlichkeit und sein Vorhaben.", ["brief"]],
+      ["Имя совершенно не имеет значения, называйте как хотите.", "Der Name spielt überhaupt keine Rolle, nennen Sie ihn wie Sie wollen.", ["dismissive"]]
+    ]),
+    createTheme("2.9", "Как справляться с ежедневной тревогой и стрессом?", "Wie geht man mit täglicher Sorge und Stress um?", "Исаия 41:10", [
+      ["Стресс — частый спутник современной жизни. Поддержка из Слово Бога помогает обрести стойкость.", "Stress begleitet uns oft. Die Unterstützung aus Gottes Wort schenkt Widerstandskraft.", ["tact", "respect"]],
+      ["В Исаии 41:10 Бог подбадривает: «Не бойся, я с тобой... Я укреплю тебя и помогу тебе».", "In Jesaja 41:10 ermuntert Gott: «Fürchte dich nicht, ich bin bei dir... Ich werde dich stärken».", ["deep"]],
+      ["Доверие Богу даёт внутреннюю уверенность.", "Vertrauen auf Gott schenkt innere Zuversicht.", ["brief"]],
+      ["Просто игнорируйте проблемы и они сами пройдут.", "Ignorieren Sie Probleme einfach, dann gehen sie vorbei.", ["dismissive"]]
+    ]),
+    createTheme("2.10", "Почему Библия актуальна для современного человека?", "Warum ist die Bibel für den modernen Menschen aktuell?", "2 Тимофею 3:16", [
+      ["Мудрость Библии проверена веками. Её советы для семьи и жизни работают и сегодня.", "Die Weisheit der Bibel ist jahrhundertealt erprobt. Ihre Ratschläge funktionieren auch heute.", ["fact", "respect"]],
+      ["В 2 Тимофею 3:16 говорится, что Писание полезно для обучения и исправления нашей жизни.", "2. Timotheus 3:16 zeigt, dass die Schrift nützlich zum Lehren und Richtigstellen ist.", ["deep"]],
+      ["Библия дает практическое руководство на каждый день.", "Die Bibel gibt praktische Wegleitung für jeden Tag.", ["brief"]],
+      ["Это устаревшая книга, не имеющая ценности.", "Das ist ein veraltetes Buch ohne Wert.", ["false"]]
+    ])
   ]
 };
 
@@ -582,52 +397,66 @@ const LEVEL_3 = {
   name: { ru: "Неформальное служение", de: "Informelles Zeugnisgeben" },
   desc: { ru: "В транспорте, очереди или во время отдыха", de: "Unterwegs, in Schlangen oder in der Freizeit" },
   themes: [
-    {
-      id: "3.1",
-      question: {
-        ru: "Как вам удаётся сохранять спокойствие при таких тревожных новостях?",
-        de: "Wie schaffen Sie es, bei so beunruhigenden Nachrichten ruhig zu bleiben?"
-      },
-      steps: [
-        {
-          prompt: {
-            ru: "Новости сегодня просто пугающие. Как вообще можно не паниковать?",
-            de: "Die Nachrichten heute sind einfach beängstigend. Wie kann man da nicht in Panik geraten?"
-          },
-          scripture: "",
-          answers: [
-            {
-              text: {
-                ru: "Понимаю вас, новости действительно создают много стресса. Меня очень поддерживает надежда из Библии.",
-                de: "Ich verstehe Sie, die Nachrichten erzeugen wirklich viel Stress. Mich ermutigt die Hoffnung aus der Bibel sehr."
-              },
-              tones: ["tact", "respect"]
-            },
-            {
-              text: {
-                ru: "Да, время непростое. Но знание того, что у Бога есть замысел для будущего, даёт внутренний покой.",
-                de: "Ja, die Zeiten sind nicht leicht. Aber zu wissen, dass Gott einen Vorhaben für die Zukunft hat, schenkt inneren Frieden."
-              },
-              tones: ["deep", "tact"]
-            },
-            {
-              text: {
-                ru: "Просто не смотрите телевизор.",
-                de: "Schauen Sie einfach kein Fernsehen mehr."
-              },
-              tones: ["brief"]
-            },
-            {
-              text: {
-                ru: "Дальше будет только хуже, так написано в Библии!",
-                de: "Es wird nur noch schlimmer kommen, so steht es in der Bibel!"
-              },
-              tones: ["pushy"]
-            }
-          ]
-        }
-      ]
-    }
+    createTheme("3.1", "Как вам удаётся сохранять спокойствие при тревожных новостях?", "Wie schaffen Sie es, bei so beunruhigenden Nachrichten ruhig zu bleiben?", "Римлянам 15:4", [
+      ["Понимаю вас, новости создают много стресса. Меня очень поддерживает надежда из Библии.", "Ich verstehe Sie, Nachrichten erzeugen Stress. Mich ermutigt die Hoffnung aus der Bibel.", ["tact", "respect"]],
+      ["В Римлянам 15:4 сказано, что утешение из Писаний даёт нам стойкость и уверенность в будущем.", "Römer 15:4 zeigt, dass der Trost aus den Schriften uns Standhaftigkeit und Zuversicht schenkt.", ["deep"]],
+      ["Надежда из Библии даёт внутренний покой.", "Die biblische Hoffnung schenkt inneren Frieden.", ["brief"]],
+      ["Дальше будет только хуже, так написано!", "Es wird nur noch schlimmer kommen!", ["pushy"]]
+    ]),
+    createTheme("3.2", "Что это за интересный журнал у вас в руках?", "Was ist das für eine interessante Zeitschrift in Ihrer Hand?", "", [
+      ["Это журнал «Сторожевая башня». В нём рассматриваются практические советы для жизни на основе Библии.", "Das ist die Zeitschrift «Der Wachtturm». Sie behandelt praktische Lebenstipps auf Bibelbasis.", ["fact", "respect"]],
+      ["Здесь как раз обсуждается тема укрепления семьи. Можете взять его почитать.", "Hier geht es gerade um die Stärkung der Familie. Sie können sie gerne lesen.", ["tact", "respect"]],
+      ["Журнал бесплатно рассказывает о библейской надежде.", "Die Zeitschrift berichtet kostenlos über biblische Hoffnung.", ["brief"]],
+      ["Прочитайте от корки до корки прямо сейчас!", "Lesen Sie sie sofort von vorne bis hinten!", ["pushy"]]
+    ]),
+    createTheme("3.3", "Воспитание детей сегодня требует столько сил!", "Kindererziehung erfordert heute so viel Kraft!", "Притчи 22:6", [
+      ["Вы абсолютно правы, воспитание детей — это большой труд и огромная ответственность.", "Sie haben absolut recht, Kindererziehung ist eine große Aufgabe und Verantwortung.", ["tact", "respect"]],
+      ["В Притчах 22:6 даётся добрый совет наставлять ребёнка на правильный путь с самого детства.", "In Sprüche 22:6 steht der gute Rat, ein Kind von klein auf auf den richtigen Weg zu lenken.", ["deep"]],
+      ["Библейские ориентиры очень помогают родителям.", "Biblische Richtlinien helfen Eltern sehr.", ["brief"]],
+      ["Пусть дети делают что хотят, не надо их учить.", "Lassen Sie Kinder tun was sie wollen.", ["dismissive"]]
+    ]),
+    createTheme("3.4", "Цены растут, как сохранять уверенность в завтрашнем дне?", "Die Preise steigen, wie bleibt man zuversichtlich?", "Матфея 6:31-33", [
+      ["Экономическая нестабильность действительно беспокоит многих людей сегодня.", "Die wirtschaftliche Unsicherheit macht heute vielen Menschen Sorgen.", ["tact", "respect"]],
+      ["Иисус в Матфея 6:33 заверил, что если ставить духовное на первое место, Бог позаботится о насущном.", "Jesus versicherte in Matthäus 6:33, dass Gott für das Nötige sorgt, wenn das Geistige vorgeht.", ["deep"]],
+      ["Уверенность даёт доверие заботе Бога.", "Vertrauen auf Gottes Fürsorge schenkt Zuversicht.", ["brief"]],
+      ["Нужно работать без отдыха 24 часа в сутки.", "Man muss rund um die Uhr ohne Pause arbeiten.", ["pushy"]]
+    ]),
+    createTheme("3.5", "Приятно видеть, когда люди проявляют доброту к незнакомцам.", "Es ist schön zu sehen, wenn Menschen Fremden Freundlichkeit zeigen.", "Иоанна 13:35", [
+      ["Доброта и внимание делают наш мир лучше. Это очень ценное качество.", "Freundlichkeit macht unsere Welt besser. Das ist eine sehr wertvolle Eigenschaft.", ["tact", "respect"]],
+      ["Иисус сказал в Иоанна 13:35, что именно по искренней любви узнают его истинных учеников.", "Jesus sagte in Johannes 13:35, dass man seine echten Jünger an der Liebe erkennt.", ["deep"]],
+      ["Любовь к ближнему — основа христианства.", "Nächstenliebe ist das Fundament des Christentums.", ["brief"]],
+      ["Доброта сегодня никому не нужна.", "Freundlichkeit braucht heute niemand mehr.", ["dismissive"]]
+    ]),
+    createTheme("3.6", "Природа поражает своей красотой и сложностью устройства!", "Die Natur beeindruckt durch ihre Schönheit und Komplexität!", "Евреям 3:4", [
+      ["Действительно, гармония в природе заставляет задуматься о гениальном Замыслителе.", "Tatsächlich lässt die Harmonie der Natur an einen genialen Schöpfer denken.", ["fact", "respect"]],
+      ["В Евреям 3:4 разумно отмечается: «Каждый дом кем-то построен, а построивший всё есть Бог».", "In Hebräer 3:4 heißt es logisch: «Jedes Haus wird von jemand erbaut, der aber alles erbaut hat, ist Gott».", ["deep"]],
+      ["Сложность жизни указывает на мудрого Творца.", "Die Komplexität des Lebens weist auf einen weisen Schöpfer hin.", ["brief"]],
+      ["Всё возникло случайно из ничего.", "Alles ist zufällig aus dem Nichts entstanden.", ["false"]]
+    ]),
+    createTheme("3.7", "Хорошая погода для прогулки в парке!", "Schönes Wetter für einen Spaziergang im Park!", "Псалом 104:24", [
+      ["Да, замечательный день! Природа очень помогает восстановить силы и отдохнуть.", "Ja, ein wunderbarer Tag! Die Natur hilft sehr, Kräften zu tanken.", ["tact", "respect"]],
+      ["В Псалме 104:24 восклицается: «Как многочисленны дела твои, Иегова! Всё сотворил ты с мудростью».", "In Psalm 104:24 heißt es: «Wie zahlreich sind deine Werke, o Jehova! Du hast sie alle mit Weisheit gemacht».", ["deep"]],
+      ["Красота мира напоминает о щедрости Создателя.", "Die Schönheit der Welt erinnert an die Großzügigkeit des Schöpfers.", ["brief"]],
+      ["Не обращал внимания на погоду.", "Ich habe gar nicht aufs Wetter geachtet.", ["dismissive"]]
+    ]),
+    createTheme("3.8", "Здоровье — самое ценное, что есть у человека.", "Gesundheit ist das Wertvollste, was der Mensch hat.", "Исаия 33:24", [
+      ["Совершенно верно. Когда здоровье подводит, всё остальное отходит на второй план.", "Völlig richtig. Wenn die Gesundheit nachlässt, wird alles andere zweitrangig.", ["tact", "respect"]],
+      ["Библия обещает время в Исаии 33:24, когда «ни один житель не скажет: я болен».", "Die Bibel verspricht in Jesaja 33:24 eine Zeit, in der «kein Bewohner sagen wird: Ich bin krank».", ["deep"]],
+      ["Бог обещает в будущем полное избавление от болезней.", "Gott verspricht in der Zukunft die Befreiung von Krankheiten.", ["brief"]],
+      ["Болезни будут всегда и ничего не поделать.", "Krankheiten wird es immer geben und man kann nichts tun.", ["dismissive"]]
+    ]),
+    createTheme("3.9", "Настоящих друзей в наше время найти нелегко.", "Echte Freunde sind heutzutage schwer zu finden.", "Притчи 17:17", [
+      ["Верность и искренность в дружбе — действительно редкое и драгоценное качество.", "Treue und Ehrlichkeit in der Freundschaft sind wirklich seltene Eigenschaften.", ["tact", "respect"]],
+      ["В Притчах 17:17 сказано: «Настоящий друг любит во всякое время и превращается в брата во время бедствия».", "In Sprüche 17:17 heißt es: «Ein wahrer Freund liebt allezeit und ist als Bruder für Zeiten der Not geboren».", ["deep"]],
+      ["Настоящий друг познаётся в испытаниях.", "Ein wahrer Freund zeigt sich in der Not.", ["brief"]],
+      ["Друзей не бывает, каждый сам за себя.", "Freunde gibt es nicht, jeder ist sich selbst der Nächste.", ["false"]]
+    ]),
+    createTheme("3.10", "Если бы все люди относились друг к другу с уважением...", "Wenn alle Menschen einander mit Respekt begegnen würden...", "Матфея 7:12", [
+      ["Как изменился бы мир! Взаимное уважение могло бы предотвратить большинство конфликтов.", "Wie würde sich die Welt verändern! Gegenseitiger Respekt würde Konflikte verhindern.", ["tact", "respect"]],
+      ["Иисус дал золотое правило в Матфея 7:12: «Во всём поступайте с людьми так, как хотите, чтобы они поступали с вами».", "Jesus gab die Goldene Regel in Matthäus 7:12: «Alles, was ihr wollt, dass euch die Menschen tun, das tut auch ihr ihnen».", ["deep"]],
+      ["Золотое правило Иисуса — основа гармонии в обществе.", "Die Goldene Regel Jesu ist das Fundament der Harmonie.", ["brief"]],
+      ["Люди никогда не научатся уважать друг друга.", "Menschen werden nie lernen, einander zu achten.", ["dismissive"]]
+    ])
   ]
 };
 
@@ -636,52 +465,66 @@ const LEVEL_4 = {
   name: { ru: "Повторные посещения", de: "Rückbesuche" },
   desc: { ru: "Развитие интереса у людей, проявивших внимание", de: "Förderung des Interesses bei aufgeschlossenen Personen" },
   themes: [
-    {
-      id: "4.1",
-      question: {
-        ru: "Рад вас снова видеть! Я прочитал ту публикацию, которую вы оставили.",
-        de: "Schön Sie wiederzusehen! Ich habe die Publikation gelesen, die Sie mir dagelassen haben."
-      },
-      steps: [
-        {
-          prompt: {
-            ru: "Здравствуйте! Я прочитал статью. Было очень интересно.",
-            de: "Guten Tag! Ich habe den Artikel gelesen. Es war sehr interessant."
-          },
-          scripture: "",
-          answers: [
-            {
-              text: {
-                ru: "Очень рад это слышать! Какая мысль из статьи вам откликнулась больше всего?",
-                de: "Das freut mich sehr zu hören! Welcher Gedanke aus dem Artikel hat Ihnen am besten gefallen?"
-              },
-              tones: ["tact", "respect"]
-            },
-            {
-              text: {
-                ru: "Замечательно! В следующий раз мы можем вместе рассмотреть, что по этой теме говорит сама Библия.",
-                de: "Wunderbar! Beim nächsten Mal können wir gemeinsam anschauen, was die Bibel selbst zu diesem Thema sagt."
-              },
-              tones: ["deep", "respect"]
-            },
-            {
-              text: {
-                ru: "Вот держите ещё один журнал.",
-                de: "Hier ist noch eine Zeitschrift für Sie."
-              },
-              tones: ["brief"]
-            },
-            {
-              text: {
-                ru: "Теперь вы обязаны начать регулярные занятия!",
-                de: "Jetzt müssen Sie unbedingt einen regelmäßigen Kurs beginnen!"
-              },
-              tones: ["pushy"]
-            }
-          ]
-        }
-      ]
-    }
+    createTheme("4.1", "Рад вас снова видеть! Я прочитал ту публикацию, которую вы оставили.", "Schön Sie wiederzusehen! Ich habe die Publikation gelesen.", "", [
+      ["Очень рад это слышать! Какая мысль из статьи откликнулась вам больше всего?", "Das freut mich sehr! Welcher Gedanke aus dem Artikel hat Ihnen am besten gefallen?", ["tact", "respect"]],
+      ["Замечательно! Сегодня мы можем вместе рассмотреть, что по этой теме говорит сама Библия.", "Wunderbar! Heute können wir gemeinsam anschauen, was die Bibel selbst dazu sagt.", ["deep", "respect"]],
+      ["Вот держите ещё одну интересную статью.", "Hier ist noch ein interessanter Artikel für Sie.", ["brief"]],
+      ["Теперь вы обязаны начать регулярный курс!", "Jetzt müssen Sie unbedingt einen regelmäßigen Kurs beginnen!", ["pushy"]]
+    ]),
+    createTheme("4.2", "В прошлый раз мы задались вопросом: В чём замысел Бога для человека?", "Letztes Mal fragten wir uns: Was ist Gottes Vorhaben für den Menschen?", "Бытие 1:28", [
+      ["Приятно продолжить наше обсуждение. Бог создал человека для счастливой жизни.", "Schön, unser Gespräch fortzusetzen. Gott erschuf den Menschen für ein glückliches Leben.", ["fact", "respect"]],
+      ["В Бытии 1:28 показано, что Бог поручил людям заботиться о Земле и жить на ней в мире.", "In 1. Mose 1:28 wird gezeigt, dass Gott den Menschen auftrug, die Erde zu pflegen und in Frieden zu leben.", ["deep"]],
+      ["Замысел Бога — вечная счастливая жизнь на Земле.", "Gottes Vorhaben ist ewiges glückliches Leben auf der Erde.", ["brief"]],
+      ["Бог создал человека просто так, без цели.", "Gott hat den Menschen einfach so ohne Ziel erschaffen.", ["false"]]
+    ]),
+    createTheme("4.3", "Что представляет собой Царство Бога, о котором просил Иисус?", "Was ist Gottes Königreich, um das Jesus zu beten lehrte?", "Матфея 6:9, 10", [
+      ["В молитве «Отче наш» мы просим: «Да прийдёт Царствие Твоё». Это реальное небесное правительство.", "Im Vaterunser beten wir: «Dein Reich komme». Es ist eine reale himmlische Regierung.", ["fact", "respect"]],
+      ["Царство Бога во главе с Иисусом Христом заменит все человеческие власти и принесёт мир на Землю (Матфея 6:10).", "Gottes Königreich unter Jesus wird alle menschlichen Regierungen ersetzen und Frieden bringen.", ["deep"]],
+      ["Царство Бога — это правительство Бога для всей Земли.", "Gottes Königreich ist Gottes Regierung für die ganze Erde.", ["brief"]],
+      ["Царство Бога — это просто состояние в сердце человека.", "Gottes Königreich ist nur ein Zustand im Herzen.", ["false"]]
+    ]),
+    createTheme("4.4", "Почему существует так много разных религий?", "Warum gibt es so viele verschiedene Religionen?", "Матфея 7:13, 14", [
+      ["Это естественный вопрос. Не все пути ведут к Богу, важно проверять учения по Библии.", "Das ist eine berechtigte Frage. Nicht alle Wege führen zu Gott; man muss Lehren prüfen.", ["fact", "respect"]],
+      ["Иисус сказал в Матфея 7:14, что узкие ворота ведут в жизнь, и немногие находят их.", "Jesus sagte in Matthäus 7:14, dass der schmale Weg zum Leben führt und wenige ihn finden.", ["deep"]],
+      ["Истинное поклонение основано на точных знаниях Библии.", "Wahre Anbetung stützt sich auf genaue Bibelkenntnis.", ["brief"]],
+      ["Все религии одинаково хороши и правильны.", "Alle Religionen sind gleich gut und richtig.", ["false"]]
+    ]),
+    createTheme("4.5", "Хочу показать вам удобную брошюру «Жить счастливой жизнью вечно!»", "Ich möchte Ihnen die Broschüre «Glücklich – für immer!» zeigen.", "", [
+      ["Эта брошюра создана для интерактивного рассмотрения Библии короткими уроками.", "Diese Broschüre ist für das interaktive Bibellesen in kurzen Lektionen konzipiert.", ["fact", "respect"]],
+      ["Каждая урочная тема включает стихи из Библии, иллюстрации и видеоматериалы.", "Jede Lektion enthält Bibeltexte, Illustrationen und Videos.", ["deep", "respect"]],
+      ["Её можно читать в комфортном для вас темпе.", "Sie können sie in Ihrem eigenen Tempo lesen.", ["brief"]],
+      ["Вы должны изучить её за одну неделю!", "Sie müssen sie in einer Woche durcharbeiten!", ["pushy"]]
+    ]),
+    createTheme("4.6", "Совместимы ли научные факты и доверие Библии?", "Sind wissenschaftliche Fakten und Bibelvertrauen vereinbar?", "Иов 26:7", [
+      ["Библия — не научный учебник, но когда она упоминает научные факты, она поразительно точна.", "Die Bibel ist kein Wissenschaftsbuch, aber wenn sie Wissenschaft berührt, ist sie genau.", ["fact", "respect"]],
+      ["Например, в Иове 26:7 ещё в древности было записано, что Бог «повесил землю ни на чём».", "In Hiob 26:7 wurde schon vor alters aufgeschrieben, dass Gott «die Erde an nichts aufhängt».", ["deep"]],
+      ["Точные факты Писания опередили время на тысячелетия.", "Genaue Bibelangaben waren ihrer Zeit um Jahrtausende voraus.", ["brief"]],
+      ["Наука и Библия всегда противоречат друг другу.", "Wissenschaft und Bibel widersprechen sich immer.", ["false"]]
+    ]),
+    createTheme("4.7", "Давайте прочитаем один короткий стих прямо из Библии.", "Lass uns einen kurzen Vers direkt aus der Bibel lesen.", "Евреям 4:12", [
+      ["Чтение самого текста Писания имеет особую силу и освежает разум.", "Das Lesen des Bibeltextes selbst hat eine besondere Kraft und erfrischt den Sinn.", ["tact", "respect"]],
+      ["В Евреям 4:12 сказано, что «слово Бога живо и действенно» и затрагивает самые глубокие чувства.", "In Hebräer 4:12 heißt es, dass «Gottes Wort lebendig und wirksam ist» und tief berührt.", ["deep"]],
+      ["Слово Бога даёт ответы на личные вопросы.", "Gottes Wort gibt Antworten auf persönliche Fragen.", ["brief"]],
+      ["Не надо читать Библию, слушайте только меня.", "Lesen Sie nicht selbst, hören Sie nur auf mich.", ["pushy"]]
+    ]),
+    createTheme("4.8", "У нас есть короткий 2-минутный ролик по этой теме на jw.org.", "Wir haben ein einführendes 2-Minuten-Video auf jw.org dazu.", "", [
+      ["Видео наглядно и быстро показывает суть библейского ответа. Могу показать на планшете.", "Das Video zeigt anschaulich die biblische Antwort. Ich kann es auf dem Tablet zeigen.", ["fact", "respect"]],
+      ["Короткие ролик помогают легко усвоить главную мысль Писания.", "Kurze Videos helfen, den Hauptgedanken der Schrift leicht zu erfassen.", ["deep"]],
+      ["Ролик можно посмотреть в любое время по QR-коду.", "Das Video kann jederzeit per QR-Code angesehen werden.", ["brief"]],
+      ["Вы обязаны посмотреть весь фильм сейчас!", "Sie müssen jetzt den ganzen Film anschauen!", ["pushy"]]
+    ]),
+    createTheme("4.9", "Действительно ли текст Библии сохранился без искажений?", "Ist der Bibeltext wirklich unverfälscht erhalten geblieben?", "2 Петра 1:21", [
+      ["Древние рукописи и свитки Мёртвого моря подтверждают невероятную точность передачи текста.", "Alte Handschriften und die Schriftrollen vom Toten Meer bestätigen die Genauigkeit.", ["fact", "respect"]],
+      ["В 2 Петра 1:21 объясняется, что люди «говорили от Бога, движимые святым духом».", "2. Petrus 1:21 erklärt, dass Menschen «von Gott aus redeten, getrieben von heiligen Geist».", ["deep"]],
+      ["Бог позаботился о сохранении своего Слова для нас.", "Gott hat für die Bewahrung seines Wortes gesorgt.", ["brief"]],
+      ["Библию переписывали сто раз и от оригинала ничего не осталось.", "Die Bibel wurde x-mal umgeschrieben und nichts ist übrig.", ["false"]]
+    ]),
+    createTheme("4.10", "Можем попробовать провести пробный 5-минутный библейский урок?", "Sollen wir eine 5-minütige Probelektion des Bibelkurses versuchen?", "", [
+      ["Мы просто рассмотрим один абзац и один стих из Библии. Если не понравится — мы остановимся.", "Wir betrachten nur einen Absatz und einen Bibelvers. Wenn es nicht gefällt, hören wir auf.", ["tact", "respect"]],
+      ["Это простой способ увидеть, как проходило обучение Библии в I веке.", "Es ist eine einfache Möglichkeit zu sehen, wie das Bibellernen im 1. Jahrhundert ablief.", ["deep"]],
+      ["Пробный урок не обязывает вас ни к чему.", "Eine Probelektion verpflichtet Sie zu nichts.", ["brief"]],
+      ["Вы должны соглашаться на всё, что я говорю.", "Sie müssen allem zustimmen, was ich sage.", ["pushy"]]
+    ])
   ]
 };
 
@@ -690,52 +533,66 @@ const LEVEL_5 = {
   name: { ru: "Изучение Библии", de: "Bibelstudium" },
   desc: { ru: "Проведение библейских уроков и ответы на вопросы ученика", de: "Durchführen von Bibelkursen und Beantworten von Fragen" },
   themes: [
-    {
-      id: "5.1",
-      question: {
-        ru: "Как мне объяснить близким свои новые взгляды на Библию?",
-        de: "Wie kann ich meinen Angehörigen meine neuen Erkenntnisse aus der Bibel erklären?"
-      },
-      steps: [
-        {
-          prompt: {
-            ru: "Моя семья волнуется из-за моих занятий Библией. Как мне поступить?",
-            de: "Meine Familie macht sich Sorgen wegen meines Bibelkurses. Was soll ich tun?"
-          },
-          scripture: "1 Петра 3:15",
-          answers: [
-            {
-              text: {
-                ru: "В 1 Петра 3:15 советуется объяснять свою надежду «с кротостью и глубоким уважением». Добрый пример важен не меньше слов.",
-                de: "In 1. Petrus 3:15 wird geraten, die Hoffnung „mit Milde und tiefem Respekt“ zu erklären. Ein gutes Beispiel ist genauso wichtig wie Worte."
-              },
-              tones: ["deep", "tact"]
-            },
-            {
-              text: {
-                ru: "Проявляйте любовь и терпение. Показывайте, что Библия помогает вам становиться ещё лучше в семье.",
-                de: "Zeigen Sie Liebe und Geduld. Zeigen Sie, dass die Bibel Ihnen hilft, ein noch besserer Familienmensch zu werden."
-              },
-              tones: ["tact", "respect"]
-            },
-            {
-              text: {
-                ru: "Просто дайте им время.",
-                de: "Geben Sie ihnen einfach Zeit."
-              },
-              tones: ["brief"]
-            },
-            {
-              text: {
-                ru: "Не слушайте их, они ничего не понимают!",
-                de: "Hören Sie nicht auf sie, sie verstehen gar nichts!"
-              },
-              tones: ["pushy"]
-            }
-          ]
-        }
-      ]
-    }
+    createTheme("5.1", "Как мне объяснить близким свои новые взгляды на Библию?", "Wie kann ich meinen Angehörigen meine neuen Erkenntnisse erklären?", "1 Петра 3:15", [
+      ["В 1 Петра 3:15 советуется объяснять свою надежду «с кротостью и глубоким уважением».", "In 1. Petrus 3:15 wird geraten, die Hoffnung «mit Milde und tiefem Respekt» zu erklären.", ["deep", "tact"]],
+      ["Проявляйте любовь и терпение. Добрый пример важен не меньше слов.", "Zeigen Sie Liebe und Geduld. Ein gutes Beispiel ist genauso wichtig wie Worte.", ["tact", "respect"]],
+      ["Просто дайте родным время привыкнуть.", "Geben Sie Ihren Angehörigen einfach Zeit.", ["brief"]],
+      ["Не слушайте их, они ничего не понимают!", "Hören Sie nicht auf sie, sie verstehen gar nichts!", ["pushy"]]
+    ]),
+    createTheme("5.2", "Что значит «выкупать время» для духовных занятий?", "Was bedeutet es, «die Zeit auszukaufen» für geistige Dinge?", "Ефесянам 5:15, 16", [
+      ["В Ефесянам 5:16 советуется мудро использовать время, выделяя главное среди суеты.", "In Epheser 5:16 wird geraten, die Zeit weise zu nutzen und das Wichtige zu priorisieren.", ["deep"]],
+      ["Это значит осознанно планировать время для чтения Библии и размышления.", "Das bedeutet, bewusst Zeit für das Bibellesen und Nachdenken einzuplanen.", ["fact", "respect"]],
+      ["Выделяйте немного времени каждый день.", "Nehmen Sie sich jeden Tag etwas Zeit.", ["brief"]],
+      ["Нужно бросить все дела и только читать книги.", "Man muss alle Aufgaben aufgeben und nur noch lesen.", ["false"]]
+    ]),
+    createTheme("5.3", "Как развить привычку регулярного чтения Библии?", "Wie entwickelt man die Gewohnheit des regelmäßigen Bibellesens?", "Псалом 1:1, 2", [
+      ["В Псалме 1:2 говорится о счастливчике, который размышляет над Законом Бога день и ночь.", "In Psalm 1:2 wird der Glückliche beschrieben, der Tag und Nacht über Gottes Gesetz nachdenkt.", ["deep"]],
+      ["Лучше читать понемногу каждый день, чем много раз в месяц. Важна регулярность.", "Lieber täglich ein wenig lesen als einmal im Monat viel. Regelmäßigkeit zählt.", ["fact", "respect"]],
+      ["Читайте в одно и то же удобное время.", "Lesen Sie zur selben passenden Zeit.", ["brief"]],
+      ["Если за день не прочитали 10 глав — вы плохо стараетесь.", "Wenn Sie nicht 10 Kapitel am Tag lesen, strengen Sie sich nicht an.", ["pushy"]]
+    ]),
+    createTheme("5.4", "Что делать, если трудно сосредоточиться во время молитвы?", "Was tun, wenn es schwerfällt, sich beim Gebet zu konzentrieren?", "1 Фессалоникийцам 5:17", [
+      ["Молитесь простыми и искренними словами. Бог смотрит на сердце, а не на красноречие.", "Beten Sie mit einfachen, ehrlichen Worten. Gott sieht auf das Herz.", ["tact", "respect"]],
+      ["В 1 Фессалоникийцам 5:17 советуется «непрестанно молиться» — сохранять молитвенный настрой.", "In 1. Thessalonicher 5:17 steht: «Betet unablässig» – bewahrt eine gebetsvolle Haltung.", ["deep"]],
+      ["Говорите с Богом откровенно, как с близким другом.", "Sprechen Sie offen mit Gott wie mit einem guten Freund.", ["brief"]],
+      ["Используйте только заученные сложные тексты.", "Nutzen Sie nur auswendig gelernte schwere Texte.", ["false"]]
+    ]),
+    createTheme("5.5", "Зачем посещать христианские встречи в Зале Царства?", "Warum Versammlungszusammenkünfte im Königreichssaal besuchen?", "Евреям 10:24, 25", [
+      ["В Евреям 10:24, 25 побуждается собираться вместе для взаимного ободрения и любви.", "In Hebräer 10:24, 25 wird ermuntert, zusammenzukommen, um einander zu Liebe anzuspornen.", ["deep"]],
+      ["Встречи дают духовное обучение и тёплое дружеское общение единоверцев.", "Zusammenkünfte bieten biblische Bildung und Gemeinschaft.", ["fact", "respect"]],
+      ["Общение с братьями и сёстрами укрепляет веру.", "Die Gemeinschaft stärkt den Glauben.", ["brief"]],
+      ["Можно верить в душе и никогда ни с кем не встречаться.", "Man kann alleine glauben und muss niemanden treffen.", ["dismissive"]]
+    ]),
+    createTheme("5.6", "Как применять библейские принципы в выборе развлечений?", "Wie wendet man biblische Grundsätze bei der Unterhaltung an?", "Филиппийцам 4:8", [
+      ["В Филиппийцам 4:8 советуется помышлять о том, что чисто, праведно и добродетельно.", "In Philipper 4:8 wird geraten, über das nachzudenken, was rein, gerecht und tugendhaft ist.", ["deep"]],
+      ["Развлечения должны освежать силы и не наполнять умы жестокостью или нечистотой.", "Unterhaltung sollte erfrischen und den Sinn nicht mit Gewalt füllen.", ["tact", "respect"]],
+      ["Выбирайте то, что созидает вашу совесть.", "Wählen Sie das, was Ihr Gewissen stärkt.", ["brief"]],
+      ["Христианам вообще запрещены любые развлечения.", "Christen sind jegliche Unterhaltungen verboten.", ["false"]]
+    ]),
+    createTheme("5.7", "Что означает христианский нейтралитет и миролюбие?", "Was bedeutet christliche Neutralität und Friedfertigkeit?", "Исаия 2:4", [
+      ["В Исаии 2:4 предсказано, что служители Бога «перекуют мечи на плуги» и не будут учиться воевать.", "In Jesaja 2:4 ist vorhergesagt, dass Gottes Diener «Schwerter zu Pflugscharen schmieden».", ["deep"]],
+      ["Иисус учил своих последователей любить даже врагов и сохранять нейтралитет в политике.", "Jesus lehrte seine Nachfolger, selbst Feinde zu lieben und politisch neutral zu bleiben.", ["fact", "respect"]],
+      ["Миролюбие — неотъемлемая черта ученика Христа.", "Friedfertigkeit ist ein Merkmal eines Jüngers Christi.", ["brief"]],
+      ["Настоящий христианин должен участвовать в политических спорах.", "Ein echter Christ sollte sich an politischen Streitigkeiten beteiligen.", ["false"]]
+    ]),
+    createTheme("5.8", "Как преодолевать насмешки или несогласие знакомых?", "Wie geht man mit Spott oder Ablehnung Bekannter um?", "Матфея 5:11, 12", [
+      ["Иисус заверил в Матфея 5:11: «Счастливы вы, когда вас порочат... из-за меня».", "Jesus versicherte in Matthäus 5:11: «Glücklich seid ihr, wenn man euch schmäht um meinetwillen».", ["deep"]],
+      ["Сохраняйте доброту и кротость. Время и ваше доброе поведение рассеют сомнения.", "Bewahren Sie Freundlichkeit. Zeit und gutes Verhalten zerstreuen Bedenken.", ["tact", "respect"]],
+      ["Стойкость в испытаниях укрепляет личную веру.", "Standhaftigkeit in Prüfungen stärkt den Glauben.", ["brief"]],
+      ["Отвечайте тем же злословием в ответ.", "Zanken Sie genauso zurück.", ["pushy"]]
+    ]),
+    createTheme("5.9", "В чём разница между формальной молитвой и искренним разговором с Богом?", "Was unterscheidet ein formelles Gebet von einem ehrlichen Gespräch mit Gott?", "Матфея 6:7", [
+      ["В Матфея 6:7 Иисус предостерёг: «Приходя в молитве, не повторяйте одно и то же».", "In Matthäus 6:7 warnte Jesus: «Wenn ihr betet, sagt nicht immer wieder dasselbe».", ["deep"]],
+      ["Бог ценит искренние чувства, изливаемые от сердца, а не заученные формулировки.", "Gott schätzt ehrliche Gefühle aus dem Herzen, nicht auswendig gelernte Phrasen.", ["fact", "respect"]],
+      ["Искренняя молитва — это доверительный разговор с Отцом.", "Ein ehrliches Gebet ist ein vertrauliches Gespräch mit dem Vater.", ["brief"]],
+      ["Чем длиннее молитва — тем лучше Бог её слышит.", "Je länger das Gebet, desto besser hört Gott.", ["false"]]
+    ]),
+    createTheme("5.10", "Каковы важные шаги на пути к христианскому крещению?", "Was sind wichtige Schritte auf dem Weg zur christlichen Taufe?", "Матфея 28:19, 20", [
+      ["Крещение — это осознанный личный шаг посвящения Богу Иегове на основе точных знаний.", "Die Taufe ist ein bewusster persönlicher Schritt der Hingabe an Gott auf Wissensbasis.", ["fact", "respect"]],
+      ["В Матфея 28:19, 20 Иисус повелел подготавливать учеников, уча их соблюдать всё заповеданное.", "In Matthäus 28:19, 20 gebot Jesus, Jünger zu machen und sie zu lehren.", ["deep"]],
+      ["Шаги включают познание, веру, раскаяние и посвящение.", "Die Schritte umfassen Erkenntnis, Glauben, Reue und Hingabe.", ["brief"]],
+      ["Крестить надо младенцев без их согласия.", "Man muss Säuglinge ohne deren Zustimmung taufen.", ["false"]]
+    ])
   ]
 };
 
@@ -744,52 +601,66 @@ const LEVEL_6 = {
   name: { ru: "Сложные вопросы и возражения", de: "Schwierige Fragen und Einwände" },
   desc: { ru: "Тактичные ответы на глубокие и непростые возражения", de: "Taktvolle Antworten auf schwierige und tiefe Einwände" },
   themes: [
-    {
-      id: "6.1",
-      question: {
-        ru: "Почему у вас своя собственная Библия — «Перевод нового мира»?",
-        de: "Warum haben Sie Ihre eigene Bibel — die «Neue-Welt-Übersetzung»?"
-      },
-      steps: [
-        {
-          prompt: {
-            ru: "Я слышал, что вы используете свой собственный перевод Библии. Почему?",
-            de: "Ich habe gehört, dass Sie Ihre eigene Bibelübersetzung verwenden. Warum?"
-          },
-          scripture: "2 Тимофею 3:16",
-          answers: [
-            {
-              text: {
-                ru: "Это точный перевод на современный язык, сделанный с древних манускриптов с возвращением имени Бога — Иегова.",
-                de: "Es ist eine genaue Übersetzung in moderne Sprache aus den alten Manuskripten, in der der Name Gottes – Jehova – wieder eingesetzt wurde."
-              },
-              tones: ["fact", "respect"]
-            },
-            {
-              text: {
-                ru: "Мы с радостью используем любой перевод Библии при разговоре. Главное — исследовать Слово Бога (2 Тимофею 3:16).",
-                de: "Wir nutzen im Gespräch gerne jede Bibelübersetzung. Hauptsache ist, Gottes Wort zu erforschen (2. Timotheus 3:16)."
-              },
-              tones: ["deep", "respect"]
-            },
-            {
-              text: {
-                ru: "Наш перевод просто более понятен.",
-                de: "Unsere Übersetzung ist einfach verständlicher."
-              },
-              tones: ["brief"]
-            },
-            {
-              text: {
-                ru: "Все остальные переводы искажены и неправильны!",
-                de: "Alle anderen Übersetzungen sind verfälscht und falsch!"
-              },
-              tones: ["false"]
-            }
-          ]
-        }
-      ]
-    }
+    createTheme("6.1", "Почему вы используете «Перевод нового мира»?", "Warum nutzen Sie die «Neue-Welt-Übersetzung»?", "2 Тимофею 3:16", [
+      ["Это точный перевод на современный язык, сделанный с древних манускриптов с возвращением имени Бога.", "Es ist eine genaue Übersetzung in moderne Sprache aus alten Handschriften mit Gottes Namen.", ["fact", "respect"]],
+      ["Мы с радостью используем любой перевод Библии при разговоре (2 Тимофею 3:16).", "Wir nutzen im Gespräch gerne jede Bibelübersetzung (2. Timotheus 3:16).", ["deep", "respect"]],
+      ["Наш перевод понятен и доступен каждому.", "Unsere Übersetzung ist verständlich und zugänglich.", ["brief"]],
+      ["Все остальные переводы неправильные!", "Alle anderen Übersetzungen sind falsch!", ["false"]]
+    ]),
+    createTheme("6.2", "У меня своя вера и своя церковь!", "Ich habe meinen eigenen Glauben und meine eigene Kirche!", "Иоанна 4:23, 24", [
+      ["Мы очень уважаем ваше искреннее отношение к вере. Религиозные чувства — это очень лично.", "Wir respektieren Ihre ehrliche Einstellung zum Glauben sehr.", ["tact", "respect"]],
+      ["В Иоанна 4:23 сказано, что истинные поклонники будут поклоняться Отцу «в духе и истине».", "In Johannes 4:23 steht, dass wahre Anbeter den Vater «in Geist und Wahrheit» anbeten.", ["deep"]],
+      ["Главное — сверять учения с Библией.", "Wichtig ist, Lehren mit der Bibel abzugleichen.", ["brief"]],
+      ["Ваша церковь полностью ошибается!", "Ihre Kirche liegt völlig falsch!", ["pushy"]]
+    ]),
+    createTheme("6.3", "У меня абсолютно нет времени разговаривать!", "Ich habe absolut keine Zeit zu sprechen!", "", [
+      ["Понимаю вас, не буду задерживать. Оставлю лишь короткую карточку с адресом сайта.", "Ich verstehe Sie und halte Sie nicht auf. Ich lasse nur eine Kontaktkarte da.", ["brief", "tact"]],
+      ["Спасибо за вашу откровенность. Желаю вам доброго дня!", "Vielen Dank für Ihre Ehrlichkeit. Ich wünsche Ihnen einen schönen Tag!", ["respect"]],
+      ["Мы можем зайти в другой раз в удобное время.", "Wir können ein andermal zu einer passenden Zeit kommen.", ["brief"]],
+      ["Вы обязаны уделить мне хотя бы 15 минут!", "Sie müssen mir mindestens 15 Minuten schenken!", ["pushy"]]
+    ]),
+    createTheme("6.4", "Меня совершенно не интересует религия!", "Religion interessiert mich überhaupt nicht!", "", [
+      ["Понимаю вас. Многие устали от разочарований в религиозных организациях.", "Ich verstehe Sie. Viele sind enttäuscht von religiösen Organisationen.", ["tact", "respect"]],
+      ["Мы приходим поговорить не о религии, а о будущем планеты и практических советах для жизни.", "Wir sprechen nicht über Religion, sondern über die Zukunft und Lebenstipps.", ["fact", "respect"]],
+      ["Спасибо за честный ответ. Всего вам доброго!", "Danke für die ehrliche Antwort. Alles Gute!", ["brief"]],
+      ["Без религии вы попадёте в беду!", "Ohne Religion geraten Sie in Schwierigkeiten!", ["pushy"]]
+    ]),
+    createTheme("6.5", "Разве у вас не менялись некоторые ожидания в прошлом?", "Haben sich manche Erwartungen bei Ihnen früher nicht verändert?", "Притчи 4:18", [
+      ["Честное исследование Библии требует готовности уточнять понимание по мере роста знаний.", "Ehrliches Bibelforschen erfordert die Bereitschaft, das Verständnis zu verfeinern.", ["fact", "respect"]],
+      ["В Притчах 4:18 сказано: «Путь праведных — как сияющий свет, который становится всё ярче».", "In Sprüche 4:18 heißt es: «Der Pfad der Gerechten ist wie glänzendes Licht, das heller wird».", ["deep"]],
+      ["Понимание Библии становится всё точнее со временем.", "Das Bibelverständnis wird mit der Zeit genauer.", ["brief"]],
+      ["Мы никогда ни в чём не ошибались.", "Wir haben uns noch nie in etwas geirrt.", ["false"]]
+    ]),
+    createTheme("6.6", "Зачем проповедовать тем, кто уже считает себя христианином?", "Warum gepredigt wird denen, die sich schon als Christen sehen?", "Матфея 24:14", [
+      ["Нам приятно общаться с теми, кто любит Библию. Это возможность взаимно ободриться.", "Wir sprechen gerne mit denen, die die Bibel lieben. Das muntert gegenseitig auf.", ["tact", "respect"]],
+      ["В Матфея 24:14 Иисус повелел делиться благой вестью о Царстве по всей обитаемой земле.", "In Matthäus 24:14 gebot Jesus, die gute Botschaft vom Reich auf der ganzen Erde zu teilen.", ["deep"]],
+      ["Обсуждение Библии обогащает обоих собеседников.", "Bibelgespräche bereichern beide Gesprächspartner.", ["brief"]],
+      ["Потому что другие христиане неправильно верят.", "Weil andere Christen falsch glauben.", ["pushy"]]
+    ]),
+    createTheme("6.7", "Почему вы не празднуете некоторые популярные праздники?", "Warum feiern Sie manche beliebten Feiertage nicht?", "Колоссянам 2:8", [
+      ["Мы глубоко исследовали происхождение традиций и стараемся соблюдать только то, что одобряет Бог.", "Wir haben die Herkunft der Bräuche erforscht und halten das, was Gott gutheißt.", ["fact", "respect"]],
+      ["В Колоссянам 2:8 советуется остерегаться человеческих традиций, не основанных на Христе.", "In Kolosser 2:8 wird geraten, sich vor Menschlichen Traditionen zu hüten.", ["deep"]],
+      ["Наш выбор основан на желании радовать Творца.", "Unsere Wahl stützt sich auf den Wunsch, den Schöpfer zu erfreuen.", ["brief"]],
+      ["Кто празднует — тот совершает грех!", "Wer feiert, begeht eine Sünde!", ["pushy"]]
+    ]),
+    createTheme("6.8", "Религия — это просто средство для зарабатывания денег!", "Religion ist nur ein Mittel zum Geldverdienen!", "2 Коринфянам 2:17", [
+      ["К сожалению, коммерциализация религии действительно вызвала у многих отвращение.", "Leider hat die Kommerzialisierung der Religion bei vielen Abscheu erzeugt.", ["tact", "respect"]],
+      ["Павел в 2 Коринфянам 2:17 подчеркнул: «Мы не торговцы словом Бога, а говорим со всей искренностью».", "Paulus betonte in 2. Korinther 2:17: «Wir sind nicht wie viele, die mit dem Wort Gottes handeln».", ["deep"]],
+      ["Вся наша деятельность поддерживается добровольно без сбора средств.", "Unsere Tätigkeit wird freiwillig ohne Kollekten unterstützt.", ["brief"]],
+      ["Все религиозные деятели одинаковы.", "Alle religiösen Personen sind gleich.", ["dismissive"]]
+    ]),
+    createTheme("6.9", "В чем ваша позиция относительно уважения к ценности жизни?", "Wie ist Ihre Haltung bezüglich der Wertschätzung des Lebens?", "Деяния 15:29", [
+      ["Мы глубоко ценим дар жизни и всегда выбираем самую качественную бескровную медицину.", "Wir schätzen das Leben zutiefst und wählen die beste blutfreie Medizin.", ["fact", "respect"]],
+      ["Библия в Деяниях 15:29 советуется воздерживаться от крови из уважения к Дателю жизни.", "Die Bibel rät in Apostelgeschichte 15:29, sich des Blutes aus Respekt zu enthalten.", ["deep"]],
+      ["Бескровная хирургия сегодня признана передовой и безопасной.", "Blutfreie Chirurgie gilt heute als fortschrittlich und sicher.", ["brief"]],
+      ["Жизнь не имеет ценности.", "Das Leben hat keinen Wert.", ["false"]]
+    ]),
+    createTheme("6.10", "Как вы поступаете, когда собеседник проявляет недоброжелательность?", "Wie reagieren Sie, wenn ein Gesprächspartner Unfreundlichkeit zeigt?", "Притчи 15:1", [
+      ["Мы всегда сохраняем уважение и спокойствие. В Притчах 15:1 сказано: «Кроткий ответ отвращает гнев».", "Wir bewahren stets Respekt. In Sprüche 15:1 heißt es: «Eine gelinde Antwort wendet Zorn ab».", ["tact", "respect"]],
+      ["В 2 Тимофею 2:24 советуется быть мягким со всеми и сдерживать себя при несправедливости.", "2. Timotheus 2:24 rät, gegen alle sanft zu sein und sich zu beherrschen.", ["deep"]],
+      ["Кротость и спокойствие — лучший ответ на грубость.", "Sanftmut und Ruhe sind die beste Antwort auf Härte.", ["brief"]],
+      ["Нужно отвечать тем же и спорить до победного!", "Man muss genauso zurückzanken und streiten!", ["pushy"]]
+    ])
   ]
 };
 
