@@ -264,10 +264,11 @@ function renderStep() {
       ${step.isConflict ? `<div class="conflict-badge">${t('conflictWarn')}</div>` : ""}
       <div class="question">«${getText(step.prompt)}»</div>
       
-      <div class="bible-search">
-        <input type="text" id="bSearchInput" placeholder="${t('bibleSearchPlaceholder')}" autocomplete="off" />
-        <div id="bSearchResults" class="search-results"></div>
+      <div class="bible-search" style="display:flex; gap:6px; align-items:center; margin-bottom:12px;">
+        <input type="text" id="bSearchInput" placeholder="${t('bibleSearchPlaceholder')}" autocomplete="off" style="flex:1;" />
+        <button id="bSearchBtn" class="btn secondary" style="padding:8px 12px; margin:0; width:auto; flex-shrink:0;">📖 ${t('applyBtn', 'Применить')}</button>
       </div>
+      <div id="bSearchResults" class="search-results"></div>
 
       <div class="timer-wrap"><div class="timer-bar" id="timerBar"></div></div>
       <div class="timer-label" id="timerLabel"></div>
@@ -298,7 +299,35 @@ function renderStep() {
   
   // Bible search logic
   const sInput = $("#bSearchInput");
+  const sBtn = $("#bSearchBtn");
   const sRes = $("#bSearchResults");
+
+  const doApplyScripture = (refToApply) => {
+    if (!refToApply) return;
+    const result = engine.applyScripture(refToApply);
+    sInput.value = "";
+    sRes.style.display = "none";
+    if (result.success || engine.session.scriptureBonusUsed) {
+      sInput.disabled = true;
+      if (sBtn) sBtn.disabled = true;
+      sInput.placeholder = t('scriptureApplied');
+    }
+  };
+
+  const handleSearchSubmit = () => {
+    const q = sInput.value.trim();
+    if (!q) return;
+    const res = engine.searchScripture(q);
+    if (res.length > 0) {
+      doApplyScripture(res[0].ref);
+    } else {
+      renderTrustUpdate(engine.session.trust, {
+        ru: "Стих не найден в базе. Попробуйте ввести '1 Иоанна', 'Исаия' или '41:10'.",
+        de: "Vers nicht gefunden. Versuche '1. Johannes', 'Jesaja' oder '41:10'."
+      }, "bad");
+    }
+  };
+
   sInput.addEventListener("input", (e) => {
     const q = e.target.value;
     const res = engine.searchScripture(q);
@@ -312,16 +341,25 @@ function renderStep() {
       sRes.style.display = "none";
     }
   });
+
+  sInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleSearchSubmit();
+    }
+  });
+
+  if (sBtn) {
+    sBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      handleSearchSubmit();
+    });
+  }
+
   sRes.addEventListener("click", (e) => {
     const item = e.target.closest(".sr-item");
     if (item) {
-      const result = engine.applyScripture(item.dataset.ref);
-      sInput.value = "";
-      sRes.style.display = "none";
-      if(result.success) {
-        sInput.disabled = true;
-        sInput.placeholder = t('scriptureApplied');
-      }
+      doApplyScripture(item.dataset.ref);
     }
   });
   

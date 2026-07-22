@@ -472,13 +472,37 @@ class GameEngine {
 
   applyScripture(ref) {
     if (this.session.scriptureBonusUsed) return { success: false, msg: { ru: "Вы уже приводили стих в этом шаге.", de: "Du hast diesen Vers bereits in diesem Schritt angeführt." } };
+    
+    // Normalize key
+    let matchedKey = ref;
+    for (const [key, obj] of Object.entries(SCRIPTURES)) {
+      if (
+        key === ref ||
+        (obj.ref && (obj.ref.ru === ref || obj.ref.de === ref))
+      ) {
+        matchedKey = key;
+        break;
+      }
+    }
+
     this.session.scriptureBonusUsed = true;
     this.session.scriptureOpens++;
     
     const card = this.session.cards[this.session.index];
     const step = card.steps[this.session.stepIndex];
+
+    // Check Daily Challenge
+    const daily = this.profile.getDailyChallenge();
+    if (daily && !daily.completed) {
+      if (matchedKey === daily.ref || ref === daily.ref) {
+        daily.completed = true;
+        this.session.earned += 20;
+        this.profile.save();
+        renderTrustUpdate(this.session.trust, { ru: "📅 Задание дня выполнено! (+20 бонусных баллов)", de: "📅 Tägliche Aufgabe erfüllt! (+20 Bonus-Punkte)" }, "good");
+      }
+    }
     
-    if (step.scripture === ref) {
+    if (step.scripture === matchedKey || step.scripture === ref) {
       this.session.trust = Math.min(100, this.session.trust + 15);
       renderTrustUpdate(this.session.trust, { ru: "Отличный стих! Собеседник впечатлен (+15% доверия).", de: "Perfekter Vers! Gesprächspartner beeindruckt (+15% Vertrauen)." }, "good");
       return { success: true };
