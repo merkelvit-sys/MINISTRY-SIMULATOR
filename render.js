@@ -162,6 +162,32 @@ function renderMenu() {
     </div>
   `;
 
+  const daily = engine.profile.getDailyChallenge();
+  const bookmarks = engine.profile.data.bookmarks || [];
+
+  const dailyHtml = `
+    <div class="fb perfect" style="margin-bottom:14px; text-align:left;">
+      <div style="font-weight:700; font-size:14px; color:var(--good); display:flex; justify-content:space-between; align-items:center;">
+        <span>${t('dailyChallengeTitle')}</span>
+        <span class="tag" style="background:var(--card); border-color:var(--good); color:var(--good);">${daily.completed ? '✓' : '+20 б.'}</span>
+      </div>
+      <div style="font-size:13px; color:var(--fg); margin-top:4px;">
+        ${t('dailyChallengeDesc')} <b class="scripture-link" data-ref="${daily.ref}">${daily.ref}</b> ${t('dailyChallengeSuffix')}
+      </div>
+    </div>`;
+
+  const bookmarksHtml = `
+    <div class="fb" style="margin-bottom:14px; text-align:left;">
+      <div style="font-weight:700; font-size:14px; color:var(--accent); margin-bottom:6px;">
+        ${t('bookmarksTitle')} (${bookmarks.length})
+      </div>
+      ${bookmarks.length > 0 ? `
+        <div style="display:flex; flex-wrap:wrap; gap:6px;">
+          ${bookmarks.map(bRef => `<button class="btn secondary scripture-link" style="padding:4px 8px; font-size:12px; margin:0;" data-ref="${bRef}">📖 ${bRef}</button>`).join("")}
+        </div>
+      ` : `<div style="font-size:12px; color:var(--muted);">${t('noBookmarks')}</div>`}
+    </div>`;
+
   app.innerHTML = `
     ${getHeaderHTML()}
     <p class="sub">${window.i18n ? window.i18n.t("appDesc") : "Подбирай ответ под характер собеседника. Доверие важнее скорости."}</p>
@@ -171,10 +197,17 @@ function renderMenu() {
       <button class="mode-btn ${selectedMode === 'hardcore' ? 'active hardcore' : ''}" id="modeHardcore">${window.i18n ? window.i18n.t("modeHardcore") : "⚡ Испытание на прочность"}</button>
     </div>
 
+    ${dailyHtml}
+    ${bookmarksHtml}
     ${profileHtml}
     <div class="card"><div class="levels">${rows.join("")}</div></div>
     <p class="sub">Механика: у каждого свой характер и стартовое доверие. Грубость роняет доверие — при 0% собеседник уходит.</p>
   `;
+
+  // Attach scripture links event listeners
+  app.querySelectorAll(".scripture-link").forEach(link => {
+    link.addEventListener("click", () => openBibleModal(link.dataset.ref));
+  });
 
   // Handlers
   $("#modeNormal").addEventListener("click", () => { selectedMode = "normal"; renderMenu(); });
@@ -483,11 +516,26 @@ function renderResult() {
 }
 
 function openBibleModal(ref) {
+  const t = (k) => window.i18n ? window.i18n.t(k) : k;
   if (engine.session) engine.session.scriptureOpens++;
-  $("#modalRef").textContent = ref;
+  
+  const isBookmarked = engine.profile.isBookmarked(ref);
+  const bmText = isBookmarked ? t('bookmarkedLabel') : t('addBookmarkLabel');
+  
+  $("#modalRef").innerHTML = `${ref} <button id="bmToggleBtn" class="btn secondary" style="padding:2px 8px; font-size:12px; margin-left:8px; width:auto; display:inline-block;">${bmText}</button>`;
+  
   const s = SCRIPTURES[ref];
   $("#modalText").textContent = s ? (window.i18n ? window.i18n.getText(s.text) : s.text) : (window.i18n ? window.i18n.t("scriptureUnavailable") : "Текст стиха пока недоступен в базе.");
   $("#bibleModal").classList.add("active");
+
+  const bmBtn = $("#bmToggleBtn");
+  if (bmBtn) {
+    bmBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const state = engine.profile.toggleBookmark(ref);
+      bmBtn.textContent = state ? t('bookmarkedLabel') : t('addBookmarkLabel');
+    });
+  }
 }
 function closeBibleModal() { $("#bibleModal").classList.remove("active"); }
 
