@@ -164,17 +164,32 @@ class PlayerProfile {
   }
 
   getFeedback() {
-    if (this.data.sessions < 3) return "Пройдите ещё пару сессий, чтобы профиль собрал аналитику вашего стиля.";
+    if (this.data.sessions < 3) return {
+      ru: "Пройдите ещё пару сессий, чтобы профиль собрал аналитику вашего стиля.",
+      de: "Absolviere noch ein paar Sitzungen, damit das Profil deine Stil-Analyse erstellt."
+    };
     let mostUsedTone = "", maxTone = 0;
     for (const [t, c] of Object.entries(this.data.toneUsage)) {
       if (c > maxTone) { maxTone = c; mostUsedTone = t; }
     }
     const pct = this.data.achievable > 0 ? Math.round((this.data.earned / this.data.achievable) * 100) : 0;
     
-    if (mostUsedTone === "pushy" || mostUsedTone === "false") return "💡 Совет: Вы часто используете напористые ответы. Старайтесь больше проявлять такт (respect) и опираться на Писание (deep).";
-    if (pct < 60 && mostUsedTone === "deep") return "💡 Совет: Вы часто используете Писание, но иногда людям нужен просто короткий ответ или сочувствие. Следите за нетерпеливыми собеседниками.";
-    if (pct >= 80) return "🏆 Отлично! У вас сформировался чуткий и адаптивный подход к разным людям.";
-    return "💡 Аналитика: Вы развиваетесь. Экспериментируйте с разными тонами, чтобы найти лучший ключ к каждому характеру.";
+    if (mostUsedTone === "pushy" || mostUsedTone === "false") return {
+      ru: "💡 Совет: Вы часто используете напористые ответы. Старайтесь больше проявлять такт (respect) и опираться на Писание (deep).",
+      de: "💡 Tipp: Du nutzt oft aufdringliche Antworten. Zeige mehr Takt (respect) und verweise auf die Bibel (deep)."
+    };
+    if (pct < 60 && mostUsedTone === "deep") return {
+      ru: "💡 Совет: Вы часто используете Писание, но иногда людям нужен просто короткий ответ или сочувствие. Следите за нетерпеливыми собеседниками.",
+      de: "💡 Tipp: Oft nutzt du die Schrift, aber die Leute brauchen eine kurze Antwort. Achte auf eilige Gesprächspartner."
+    };
+    if (pct >= 80) return {
+      ru: "🏆 Отлично! У вас сформировался чуткий и адаптивный подход к разным людям.",
+      de: "🏆 Ausgezeichnet! Du hast einen einfühlsamen und anpassungsfähigen Ansatz entwickelt."
+    };
+    return {
+      ru: "Вы развиваетесь. Экспериментируйте с разными тонами, чтобы найти лучший ключ к каждому характеру.",
+      de: "Du entwickelst dich weiter. Experimentiere mit verschiedenen Tönen, um den besten Schlüssel zu jedem Charakter zu finden."
+    };
   }
 }
 
@@ -516,11 +531,35 @@ class GameEngine {
 
   static achievementsFor(s, pct) {
     const list = [];
-    if (s.wrong === 0)        list.push({ icon: "✨", name: "Безупречный выход", desc: "Ни одного неверного ответа" });
-    if (s.maxStreak >= 5)     list.push({ icon: "🔥", name: "Огненная серия", desc: "5+ верных ответов подряд" });
-    if (s.leftCount === 0)    list.push({ icon: "🕊️", name: "Дипломат", desc: "Никто не прервал разговор" });
-    if (s.scriptureOpens > 0) list.push({ icon: "📖", name: "Исследователь Писания", desc: "Открыл стих в Библии" });
-    if (pct >= 85)            list.push({ icon: "🏆", name: "Мастер диалога", desc: "85%+ эффективности" });
+    if (s.wrong === 0) {
+      list.push({ 
+        icon: "✨", 
+        nameKey: "achievements.flawless_name", 
+        descKey: "achievements.flawless_desc" 
+      });
+    }
+    if (s.leftCount === 0) {
+      list.push({ 
+        icon: "🕊️", 
+        nameKey: "achievements.diplomat_name", 
+        descKey: "achievements.diplomat_desc" 
+      });
+    }
+    if (s.scriptureOpens > 0) {
+      list.push({ 
+        icon: "📖", 
+        nameKey: "achievements.explorer_name", 
+        descKey: "achievements.explorer_desc" 
+      });
+    }
+    if (pct >= 85) {
+      list.push({ 
+        icon: "🏆", 
+        nameKey: "achievements.master_name", 
+        descKey: "achievements.master_desc",
+        params: { percent: 85 }
+      });
+    }
     return list;
   }
 }

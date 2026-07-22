@@ -99,8 +99,62 @@ class i18nManager {
         bottomHint: "Механика: у каждого свой характер и стартовое доверие. Грубость роняет доверие — при 0% собеседник уходит.",
         scriptureUnavailable: "Текст стиха пока недоступен в базе.",
         conflictWarn: "⚠️ Спор! Снизьте градус напряжения",
+        ui: {
+          title_main: "ТРЕНАЖЁР",
+          title_accent: "СЛУЖЕНИЯ",
+          profile_analysis: "Аналитика",
+          profile_analysis_text: "Вы развиваетесь. Экспериментируйте с разными тонами, чтобы найти лучший ключ к каждому характеру.",
+          best_streak: "Лучшая серия",
+          points_label: "Баллы",
+          left_count: "Ушли",
+          pts_abbr: "б.",
+          step_label: "Шаг",
+          correct: "Верно",
+          wrong: "Неверно",
+          grade_master: "Мастер диалога 🏆",
+          btn_again: "Новый выход",
+          btn_menu: "В меню",
+          no_achievements: "Пока без ачивок — попробуй ещё раз!"
+        },
+        achievements: {
+          flawless_name: "Безупречный выход",
+          flawless_desc: "Ни одного неверного ответа",
+          diplomat_name: "Дипломат",
+          diplomat_desc: "Никто не прервал разговор",
+          master_name: "Мастер диалога",
+          master_desc: "{percent}%+ эффективности",
+          explorer_name: "Исследователь Писания",
+          explorer_desc: "Открыл стих в Библии"
+        }
       },
       de: {
+        ui: {
+          title_main: "DIENST-TRAINER",
+          title_accent: "Dienst",
+          profile_analysis: "Profilanalyse",
+          profile_analysis_text: "Du entwickelst dich weiter. Experimentiere mit verschiedenen Tönen, um den besten Schlüssel zu jedem Charakter zu finden.",
+          best_streak: "Beste Serie",
+          points_label: "Punkte",
+          left_count: "Abgebrochen",
+          pts_abbr: "Pkt.",
+          step_label: "Schritt",
+          correct: "Richtig",
+          wrong: "Falsch",
+          grade_master: "Gesprächsmeister 🏆",
+          btn_again: "Neuer Versuch",
+          btn_menu: "Zum Menü",
+          no_achievements: "Noch keine Errungenschaften — versuche es nochmal!"
+        },
+        achievements: {
+          flawless_name: "Tadelloser Durchgang",
+          flawless_desc: "Keine einzige falsche Antwort",
+          diplomat_name: "Diplomat",
+          diplomat_desc: "Niemand hat das Gespräch abgebrochen",
+          master_name: "Meisterdialog",
+          master_desc: "{percent}%+ Effizienz erreicht",
+          explorer_name: "Erforscher der Schrift",
+          explorer_desc: "Bibelvers im Text geöffnet"
+        },
         appTitle: "DIENST-TRAINER",
         appSubtitle: "Dienst",
         appDesc: "Passe deine Antwort an den Charakter des Gesprächspartners an. Vertrauen ist wichtiger als Tempo.",
@@ -225,12 +279,44 @@ class i18nManager {
     }
   }
 
-  t(key, fallback = "") {
-    const curDict = this.dictionary[this.currentLang];
-    if (curDict && curDict[key]) return curDict[key];
-    const ruDict = this.dictionary["ru"];
-    if (ruDict && ruDict[key]) return ruDict[key];
-    return fallback || key;
+  t(key, params = {}) {
+    if (typeof params === "string") {
+      const fallback = params;
+      const curDict = this.dictionary[this.currentLang];
+      if (curDict && curDict[key] !== undefined) return curDict[key];
+      const ruDict = this.dictionary["ru"];
+      if (ruDict && ruDict[key] !== undefined) return ruDict[key];
+      return fallback || key;
+    }
+
+    const resolveKey = (dict, k) => {
+      if (!dict) return undefined;
+      if (dict[k] !== undefined) return dict[k];
+      if (k.includes(".")) {
+        const parts = k.split(".");
+        let curr = dict;
+        for (const p of parts) {
+          if (curr && curr[p] !== undefined) curr = curr[p];
+          else return undefined;
+        }
+        return curr;
+      }
+      return undefined;
+    };
+
+    const langDict = this.dictionary[this.currentLang] || {};
+    const ruDict = this.dictionary["ru"] || {};
+
+    let val = resolveKey(langDict, key);
+    if (val === undefined) val = resolveKey(ruDict, key);
+    if (val === undefined) val = key;
+
+    if (typeof val === "string" && params && typeof params === "object") {
+      Object.keys(params).forEach((p) => {
+        val = val.replaceAll(`{${p}}`, params[p]).replaceAll(`{{${p}}}`, params[p]);
+      });
+    }
+    return val;
   }
 
   getText(contentObj) {

@@ -322,28 +322,28 @@ function renderStepFeedback(pl) {
 }
 
 function renderResult() {
-  const t = (k) => window.i18n ? window.i18n.t(k) : k;
+  const t = (k, p) => window.i18n ? window.i18n.t(k, p) : k;
   const getText = (obj) => window.i18n ? window.i18n.getText(obj) : obj;
   engine.stopTimer();
   const pct = engine.session.achievable > 0 ? Math.min(100, Math.round((engine.session.earned / engine.session.achievable) * 100)) : 0;
-  let grade, note;
-  if (pct >= 85)      { grade = t("masterDialogue"); note = ""; }
-  else if (pct >= 60) { grade = t("confidentMinister"); note = ""; }
-  else if (pct >= 35) { grade = t("hasBase"); note = ""; }
-  else                { grade = t("needsPractice"); note = ""; }
+  
+  let grade = t("ui.grade_master", t("masterDialogue"));
 
   const achs = GameEngine.achievementsFor(engine.session, pct);
-  // Re-translate achievements based on ID or Name (since logic returns hardcoded names)
-  achs.forEach(a => {
-    if(a.name === "Безупречный выход") a.name = t("achNoWrong");
-    if(a.name === "Огненная серия") a.name = t("achStreak");
-    if(a.name === "Дипломат") a.name = t("achDiplomat");
-    if(a.name === "Исследователь Писания") a.name = t("achExplorer");
-    if(a.name === "Мастер диалога") a.name = t("achMaster");
-  });
   const achHtml = achs.length
-    ? achs.map((a) => `<div class="ach"><span class="ach-ico">${a.icon}</span><div><b>${a.name}</b><div class="npc-trait">${a.desc}</div></div></div>`).join("")
-    : `<div class="npc-trait">${t('achievementFallback')}</div>`;
+    ? achs.map((a) => {
+        const name = a.nameKey ? t(a.nameKey) : (a.name || "");
+        const desc = a.descKey ? t(a.descKey, a.params) : (a.desc || "");
+        return `
+          <div class="ach">
+            <span class="ach-ico">${a.icon}</span>
+            <div>
+              <b>${name}</b>
+              <div class="npc-trait">${desc}</div>
+            </div>
+          </div>`;
+      }).join("")
+    : `<div class="npc-trait">${t('ui.no_achievements', t('achievementFallback'))}</div>`;
 
   const newBadgesHtml = (engine.session.newBadges && engine.session.newBadges.length > 0)
     ? `<div class="fb perfect" style="margin:16px 0; text-align:left;">
@@ -354,29 +354,37 @@ function renderResult() {
        </div>`
     : "";
 
-  const profileFeedback = engine.profile.getFeedback();
+  const rawFeedback = engine.profile.getFeedback();
+  const profileAnalysisText = typeof rawFeedback === "object" ? getText(rawFeedback) : rawFeedback;
+  const ptsAbbr = t('ui.pts_abbr', 'б.');
 
   // Debriefing list HTML
   const debriefListHtml = engine.session.log.map((logItem, idx) => {
     const isGood = logItem.raw > 0;
-    const chosenTonesStr = logItem.chosenTones.map(t => TONES[t] || t).join(", ");
-    const bestTonesStr = logItem.bestTones.map(t => TONES[t] || t).join(", ");
+    const chosenTonesStr = logItem.chosenTones.map(tKey => {
+      const tObj = TONES[tKey] || tKey;
+      return getText(tObj);
+    }).join(", ");
+    const bestTonesStr = logItem.bestTones.map(tKey => {
+      const tObj = TONES[tKey] || tKey;
+      return getText(tObj);
+    }).join(", ");
     
     return `
       <div class="debrief-card">
         <div class="debrief-header">
-          <span>${t('debriefStepLabel')} ${idx + 1} · ${getText(logItem.personalityName)}</span>
+          <span>${t('ui.step_label', t('debriefStepLabel'))} ${idx + 1} · ${getText(logItem.personalityName)}</span>
           <span style="color:${isGood ? 'var(--good)' : 'var(--bad)'}; font-weight:700;">
-            ${isGood ? `+${logItem.points} б. (${t('feedbackTrustLabel')} ${Math.floor(logItem.trustBefore)}% → ${Math.floor(logItem.trustAfter)}%)` : `${t('feedbackTrustLabel')} ${Math.floor(logItem.trustBefore)}% → ${Math.floor(logItem.trustAfter)}%`}
+            ${isGood ? `+${logItem.points} ${ptsAbbr} (${t('feedbackTrustLabel')} ${Math.floor(logItem.trustBefore)}% → ${Math.floor(logItem.trustAfter)}%)` : `${t('feedbackTrustLabel')} ${Math.floor(logItem.trustBefore)}% → ${Math.floor(logItem.trustAfter)}%`}
           </span>
         </div>
         <div class="debrief-question">«${getText(logItem.question || logItem.stepPrompt)}»</div>
         <div class="debrief-choice ${isGood ? 'good' : 'bad'}">
-          <b>${t('yourChoiceLabel')}</b> ${getText(logItem.chosenText)} ${chosenTonesStr ? `<span class="tag">${chosenTonesStr}</span>` : ''}
+          <b>${t('ui.yourChoiceLabel', t('yourChoiceLabel'))}</b> ${getText(logItem.chosenText)} ${chosenTonesStr ? `<span class="tag">${chosenTonesStr}</span>` : ''}
         </div>
         ${!isGood ? `
           <div class="debrief-optimal">
-            <b>${t('bestChoiceLabel')}</b> ${getText(logItem.bestText)} <span class="tag">${bestTonesStr}</span>
+            <b>${t('ui.bestChoiceLabel', t('bestChoiceLabel'))}</b> ${getText(logItem.bestText)} <span class="tag">${bestTonesStr}</span>
           </div>
         ` : ''}
         <div class="debrief-tip">${getText(logItem.tip)}</div>
@@ -388,31 +396,38 @@ function renderResult() {
     <div class="card center">
       <div class="big-score">${pct}%</div>
       <h3>${grade}</h3>
-      <p class="sub">${note}</p>
       
       ${newBadgesHtml}
 
-      <div class="fb" style="text-align:left; margin:16px 0;">
-        <b>${t('profileAnalyticsTitle')}</b><br/>
-        <span style="font-size:14px; color:var(--muted)">${profileFeedback}</span>
+      <!-- Блок аналитики -->
+      <div class="fb partial" style="text-align:left; margin:16px 0;">
+        <h4 style="margin:0 0 4px;">💡 ${t('ui.profile_analysis', t('profileAnalyticsTitle'))}</h4>
+        <div style="font-size:13px; color:var(--muted)">
+          ${t('ui.profile_analysis_text', profileAnalysisText)}
+        </div>
       </div>
 
-      <div class="hud" style="justify-content:center; flex-wrap:wrap; gap:18px;">
-        <span>${t('hudCorrect')} <b>${engine.session.correct}</b></span>
-        <span>${t('hudWrong')} <b>${engine.session.wrong}</b></span>
-        <span>🔥 Лучшая серия: <b>${engine.session.maxStreak}</b></span>
-        <span>🏅 Баллы: <b>${engine.session.earned}</b>/${engine.session.achievable}</span>
-        <span>🚶 Ушли: <b>${engine.session.leftCount}</b></span>
+      <!-- Статистика -->
+      <div class="hud" style="justify-content:center; flex-wrap:wrap; gap:14px;">
+        <span>✅ ${t('ui.correct', t('hudCorrect'))}: <b>${engine.session.correct}</b></span>
+        <span>❌ ${t('ui.wrong', t('hudWrong'))}: <b>${engine.session.wrong}</b></span>
+        <span>🔥 ${t('ui.best_streak', 'Лучшая серия')}: <b>${engine.session.maxStreak}</b></span>
+        <span>🏅 ${t('ui.points_label', t('hudPoints'))}: <b>${engine.session.earned}</b>/${engine.session.achievable}</span>
+        <span>🚶 ${t('ui.left_count', 'Ушли')}: <b>${engine.session.leftCount}</b></span>
       </div>
+
+      <!-- Список достижений -->
       <div class="ach-list">${achHtml}</div>
 
       <div class="debrief-section">
-        <div class="debrief-title">${t('debriefTitle')} (${engine.session.log.length} ${t('step')})</div>
-        ${debriefListHtml}
+        <div class="debrief-title">${t('debriefTitle')} (${engine.session.log.length} ${t('ui.step_label', t('step'))})</div>
+        <div class="debrief-list">${debriefListHtml}</div>
       </div>
 
-      <button class="btn" id="againBtn" style="margin-top:20px;">${t('playAgain')}</button>
-      <button class="btn secondary" id="menuBtn">${t('toMenu')}</button>
+      <div style="margin-top:20px; display:flex; gap:12px; justify-content:center;">
+        <button class="btn" id="againBtn">${t('ui.btn_again', t('playAgain'))} ↻</button>
+        <button class="btn secondary" id="menuBtn">${t('ui.btn_menu', t('toMenu'))}</button>
+      </div>
     </div>
   `;
   soundFX.playSuccess();
