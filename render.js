@@ -9,10 +9,19 @@ document.addEventListener("click", (e) => {
 function getHeaderHTML() {
   const cur = window.i18n ? window.i18n.currentLang : "ru";
   const t = (k) => window.i18n ? window.i18n.t(k) : k;
+  const isAudioEnabled = window.speechEngine ? window.speechEngine.enabled : true;
+  const isSoundMuted = window.soundFX ? window.soundFX.isMuted : false;
+
   return `
-    <div class="lang-switcher">
-      <button class="lang-btn ${cur === 'ru' ? 'active' : ''}" onclick="changeLanguage('ru')">RU</button>
-      <button class="lang-btn ${cur === 'de' ? 'active' : ''}" onclick="changeLanguage('de')">DE</button>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+      <div class="lang-switcher">
+        <button class="lang-btn ${cur === 'ru' ? 'active' : ''}" onclick="changeLanguage('ru')">RU</button>
+        <button class="lang-btn ${cur === 'de' ? 'active' : ''}" onclick="changeLanguage('de')">DE</button>
+      </div>
+      <div style="display:flex; gap:6px;">
+        <button class="lang-btn" onclick="toggleSpeechAudio()" title="Озвучка реплик">${isAudioEnabled ? '🗣️' : '🔇'}</button>
+        <button class="lang-btn" onclick="toggleSoundFX()" title="Звуковые эффекты">${isSoundMuted ? '🔇' : '🎵'}</button>
+      </div>
     </div>
     <h1>${t("appTitle")} <span>${t("appSubtitle")}</span></h1>
   `;
@@ -21,6 +30,22 @@ function getHeaderHTML() {
 window.changeLanguage = function(lang) {
   if (window.i18n) {
     window.i18n.setLanguage(lang);
+  }
+};
+
+window.toggleSpeechAudio = function() {
+  if (window.speechEngine) {
+    window.speechEngine.toggle();
+    if (window.engine && window.engine.session) renderStep();
+    else renderMenu();
+  }
+};
+
+window.toggleSoundFX = function() {
+  if (window.soundFX) {
+    window.soundFX.toggleMute();
+    if (window.engine && window.engine.session) renderStep();
+    else renderMenu();
   }
 };
 
@@ -217,6 +242,10 @@ function renderStep() {
     </div>
   `;
   soundFX.playPop();
+
+  if (window.speechEngine) {
+    window.speechEngine.speak(getText(step.prompt));
+  }
 
   const qBtn = $("#quitToMenuBtn");
   if (qBtn) {

@@ -74,6 +74,7 @@ class PlayerProfile {
         if (!parsed.badges) parsed.badges = [];
         if (!parsed.scriptureUses) parsed.scriptureUses = 0;
         if (!parsed.conflictsResolved) parsed.conflictsResolved = 0;
+        if (!parsed.bookmarks) parsed.bookmarks = [];
         return parsed;
       }
     } catch(e) {}
@@ -86,8 +87,45 @@ class PlayerProfile {
       completedThemes: {},
       badges: [],
       scriptureUses: 0,
-      conflictsResolved: 0
+      conflictsResolved: 0,
+      bookmarks: []
     };
+  }
+
+  toggleBookmark(ref) {
+    if (!this.data.bookmarks) this.data.bookmarks = [];
+    const idx = this.data.bookmarks.indexOf(ref);
+    let bookmarked = false;
+    if (idx >= 0) {
+      this.data.bookmarks.splice(idx, 1);
+    } else {
+      this.data.bookmarks.push(ref);
+      bookmarked = true;
+    }
+    this.save();
+    return bookmarked;
+  }
+
+  isBookmarked(ref) {
+    if (!this.data.bookmarks) return false;
+    return this.data.bookmarks.includes(ref);
+  }
+
+  getDailyChallenge() {
+    const todayStr = new Date().toISOString().slice(0, 10);
+    if (this.data.dailyChallenge && this.data.dailyChallenge.date === todayStr) {
+      return this.data.dailyChallenge;
+    }
+    const challengeRefs = ["1 Иоанна 5:19", "Матфея 10:8", "Псалом 46:9", "Деяния 17:11", "Римлянам 15:4", "Исаия 41:10"];
+    const dayIndex = new Date().getDate() % challengeRefs.length;
+    const chosenRef = challengeRefs[dayIndex];
+    this.data.dailyChallenge = {
+      date: todayStr,
+      ref: chosenRef,
+      completed: false
+    };
+    this.save();
+    return this.data.dailyChallenge;
   }
   save() {
     try { localStorage.setItem("service_sim_profile", JSON.stringify(this.data)); } catch(e) {}

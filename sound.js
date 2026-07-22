@@ -203,3 +203,35 @@ class SoundFXManager {
 const soundInstance = new SoundFXManager();
 window.soundFX = soundInstance;
 window.soundEngine = soundInstance;
+
+class MinistrySpeechEngine {
+  constructor() {
+    this.synth = window.speechSynthesis;
+    this.enabled = true;
+  }
+
+  speak(text) {
+    if (!this.synth || !this.enabled || !text) return;
+    try {
+      this.synth.cancel();
+      const lang = window.i18n ? window.i18n.currentLang : "ru";
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = lang === "de" ? "de-DE" : "ru-RU";
+      utterance.rate = 0.95;
+      utterance.pitch = 1.0;
+      this.synth.speak(utterance);
+    } catch(e) {}
+  }
+
+  stop() {
+    if (this.synth) try { this.synth.cancel(); } catch(e) {}
+  }
+
+  toggle() {
+    this.enabled = !this.enabled;
+    if (!this.enabled) this.stop();
+    return this.enabled;
+  }
+}
+
+window.speechEngine = new MinistrySpeechEngine();
